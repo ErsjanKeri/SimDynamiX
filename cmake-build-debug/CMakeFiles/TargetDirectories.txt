@@ -1,0 +1,3 @@
+/Users/ersibesi/CLionProjects/SimDynamiX/cmake-build-debug/CMakeFiles/SimDynamiX.dir
+/Users/ersibesi/CLionProjects/SimDynamiX/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/ersibesi/CLionProjects/SimDynamiX/cmake-build-debug/CMakeFiles/rebuild_cache.dir
