@@ -45,7 +45,7 @@ State current = CONFIGURATION;
 
 int board_width = 10;
 int board_height = 10;
-vector<vector<int>> board(board_height, vector<int>(15, 0));
+vector<vector<Block*>> board(board_height, vector<Block*>(15, new Block()));
 vector<Species*> species;
 
 
