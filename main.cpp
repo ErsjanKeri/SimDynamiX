@@ -65,7 +65,7 @@ int board_height = 10;
 // int because it represents for all 15 species its count of them in every block
 vector<vector<vector<int>>> board(board_height, vector<vector<int>>(board_width, vector<int>(15, 0)));
 vector<Species*> species;
-vector<vector<float>> coefficients;
+vector<vector<float>> coefficients(15, vector<float>(15, 0.0f));
 
 int selected_box = -1; // not initalised
 
