@@ -11,10 +11,12 @@ set(SOURCES
         third_party/imgui/imgui_tables.cpp
         third_party/imgui/backends/imgui_impl_glfw.cpp
         third_party/imgui/backends/imgui_impl_opengl3.cpp
+        third_party/implot/implot.cpp
         third_party/glad/src/glad.c
         third_party/Species.cpp
         third_party/Species.h
         third_party/Numerical.cpp
+        third_party/implot/implot_items.cpp
 )
 
 # Find GLFW and OpenGL
@@ -24,6 +26,9 @@ find_package(glfw3 3.3 REQUIRED)
 # Include directories for IMGUI
 include_directories(third_party/imgui)
 include_directories(third_party/imgui/backends)
+
+# Include directories for implot
+include_directories(third_party/implot)
 
 # Include directories for GLAD and GLFW
 include_directories(third_party/glad/include)  # Include GLAD headers

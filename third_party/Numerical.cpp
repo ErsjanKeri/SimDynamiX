@@ -14,3 +14,22 @@ vector<int> computeSinglePopulationDispersion(vector<int> population, float disp
     return population;
 }
 
+
+float scalarProduct(vector<int> & animals, vector<float> & coefficients) {
+    float res = 0;
+    for (int i = 0; i < animals.size(); i++) {
+        res += static_cast<float>(animals[i])*coefficients[i];
+    }
+    return res;
+}
+
+void computeChangedPopulation(vector<vector<vector<int>>> & board, vector<vector<float>> & coefficients) {
+    // dp/dt = coef * arr
+    for (int y = 0; y < board.size(); y++) {
+        for (int x = 0; x < board[0].size(); x++) {
+            for (int k = 0; k < board[0][0].size(); k++) {
+                board[y][x][k] += static_cast<int>(scalarProduct(board[y][x], coefficients[k]));
+            }
+        }
+    }
+}

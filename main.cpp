@@ -1,5 +1,6 @@
 #include <imgui_internal.h>
 #include "imgui.h"
+#include "implot.h"
 #include <glad/glad.h>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -9,6 +10,8 @@
 #include <sstream>
 
 #include "third_party/Species.h"
+#include "third_party/Numerical.h"
+
 using namespace std;
 
 #define CANVAS_WIDTH 1320
@@ -25,6 +28,7 @@ using namespace std;
 
 // TODO, between 1 - 20 tiles
 // f(x,y,t) is actually density function at t
+// TODO, coefficient of reproduction
 
 enum State {
     CONFIGURATION,
@@ -57,7 +61,7 @@ ImVec4 HexToImVec4(uint32_t hex) {
     return ImVec4(r, g, b, a);
 }
 
-State current = CONFIGURATION
+State current = CONFIGURATION;
 int board_width = 10;
 int board_height = 10;
 // int because it represents for all 15 species its count of them in every block
@@ -277,14 +281,68 @@ void renderConfiguration() {
 
 }
 
+bool done = true;
+
+const int x_size = 100; // Number of columns
+const int y_size = 100; // Number of rows
+// Create a vector to hold the data
+vector<float> my_data(x_size * y_size);
+
+// Function to generate sample data
+void GenerateSampleData() {
+    for (int y = 0; y < y_size; ++y) {
+        for (int x = 0; x < x_size; ++x) {
+            // Example: Create a simple 2D Gaussian distribution
+            float dx = (x - x_size / 2) / (float)x_size;
+            float dy = (y - y_size / 2) / (float)y_size;
+            float value = std::exp(-(dx * dx + dy * dy) * 50.0f);
+            my_data[y * x_size + x] = value;
+        }
+    }
+}
+
+// Function to calculate min and max values in the data
+void CalculateMinMax(float& minValue, float& maxValue) {
+    auto result = std::minmax_element(my_data.begin(), my_data.end());
+    minValue = *result.first;
+    maxValue = *result.second;
+}
+
 void renderSimulation() {
     ImGui::SetNextWindowPos(ImVec2(100, 100));
     ImGui::SetNextWindowSize(ImVec2(300, 200));
 
     ImGui::Begin("Rendering Simulation", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     ImGui::Text("Rendering..");
+
+    if (ImGui::Begin("Scalar Field Plot")) {
+        if (ImPlot::BeginPlot("2D Scalar Field")) {
+            // Customize the heatmap parameters as needed
+            ImPlot::PlotHeatmap<float>(
+        "ScalarField",
+                my_data.data(),
+                x_size,
+                y_size,
+                0.0f,
+                1.0f,
+                nullptr,
+                ImPlotPoint(0.0, 0.0),
+                ImPlotPoint(1.0, 1.0)
+            );
+            ImPlot::EndPlot();
+        }
+        ImGui::End();
+    }
+
+
     if (ImGui::Button("Stop Simulation")) {
         current = CONFIGURATION;
+        // done = true;
+    }
+    if (done) {
+        cout << "hi" <<  coefficients[0][0] << "\n";
+        computeChangedPopulation(board, coefficients);
+        done = false;
     }
     ImGui::End();
 }
@@ -322,6 +380,7 @@ int main() {
     // Setup Dear ImGui context
     // IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Setup Dear ImGui style
@@ -360,6 +419,8 @@ int main() {
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
