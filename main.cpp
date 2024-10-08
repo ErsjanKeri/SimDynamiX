@@ -176,8 +176,12 @@ void config_dynamics() {
     }
 
     ImGui::Text("Rendering..");
-    if (ImGui::Button("Simulate")) {
-        current = SIMULATION;
+    // if (ImGui::Button("Simulate")) {
+    //     current = SIMULATION;
+    // }
+    if (ImGui::Button("Do Step")) {
+        computeChangedPopulation(board, coefficients);
+        board = computePopulationsDispersion(board, vector<float>(0,0));
     }
 }
 
@@ -315,35 +319,31 @@ void renderSimulation() {
     ImGui::Begin("Rendering Simulation", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     ImGui::Text("Rendering..");
 
-    if (ImGui::Begin("Scalar Field Plot")) {
-        if (ImPlot::BeginPlot("2D Scalar Field")) {
-            // Customize the heatmap parameters as needed
-            ImPlot::PlotHeatmap<float>(
-        "ScalarField",
-                my_data.data(),
-                x_size,
-                y_size,
-                0.0f,
-                1.0f,
-                nullptr,
-                ImPlotPoint(0.0, 0.0),
-                ImPlotPoint(1.0, 1.0)
-            );
-            ImPlot::EndPlot();
-        }
-        ImGui::End();
-    }
-
+    // if (ImGui::Begin("Scalar Field Plot")) {
+    //     if (ImPlot::BeginPlot("2D Scalar Field")) {
+    //         // Customize the heatmap parameters as needed
+    //         ImPlot::PlotHeatmap<float>(
+    //     "ScalarField",
+    //             my_data.data(),
+    //             x_size,
+    //             y_size,
+    //             0.0f,
+    //             1.0f,
+    //             nullptr,
+    //             ImPlotPoint(0.0, 0.0),
+    //             ImPlotPoint(1.0, 1.0)
+    //         );
+    //         ImPlot::EndPlot();
+    //     }
+    //     ImGui::End();
+    // }
+    //
 
     if (ImGui::Button("Stop Simulation")) {
         current = CONFIGURATION;
         // done = true;
     }
-    if (done) {
-        cout << "hi" <<  coefficients[0][0] << "\n";
-        computeChangedPopulation(board, coefficients);
-        done = false;
-    }
+
     ImGui::End();
 }
 

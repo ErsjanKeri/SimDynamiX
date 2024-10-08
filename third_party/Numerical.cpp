@@ -121,6 +121,10 @@ vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matr
     return resultVector;
 }
 
+
+// performs simple scalar-product
+// @param animals the vector containing the population of animals at this cell
+// @param coefficients the vector expressing the influence of other populations on our current
 float scalarProduct(vector<int> & animals, vector<float> & coefficients) {
     float res = 0;
     for (int i = 0; i < animals.size(); i++) {
@@ -129,6 +133,10 @@ float scalarProduct(vector<int> & animals, vector<float> & coefficients) {
     return res;
 }
 
+
+// performs the population change on all cells
+// @param board is the whole board with populations
+// @param coefficients is how animal at index i is influenced from other population
 void computeChangedPopulation(vector<vector<vector<int>>> & board, vector<vector<float>> & coefficients) {
     // dp/dt = coef * arr
     for (int y = 0; y < board.size(); y++) {
