@@ -1,17 +1,17 @@
 #include "Numerical.h"
+#include <algorithm>
 #include <vector>
 
 vector<vector<int>> generateDispersionMatrix(int n);
 vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matrix);
 vector<int> computePopulation1DimDispersion(vector<int> populationVec);
-vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> population);
+vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> population, float dispersionCoefficient);
 
 
 // computes the dispersed populations
 // @param populations the populations in a row-col-pop format
 // @param dispersionCoefficients the coefficients of dispersion for each population
-// @return the dispersed populations
-vector<vector<vector<int>>> computePopulationsDispersion(vector<vector<vector<int>>> populations, vector<float> dispersionCoefficients) {
+void computePopulationsDispersion(vector<vector<vector<int>>> & populations, vector<float> dispersionCoefficients) {
     // transform row-col-pop to pop-row-col
     vector<vector<vector<int>>> populationsTransformed = vector(populations[0][0].size(), vector(populations.size(), vector(populations[0].size(), 0)));
     for (int pop = 0; pop < populations[0][0].size(); pop++) {
@@ -24,26 +24,25 @@ vector<vector<vector<int>>> computePopulationsDispersion(vector<vector<vector<in
 
     // compute dispersion for every population
     for (int pop = 0; pop < populations[0][0].size(); pop++) {
-        populationsTransformed[pop] = computeSinglePopulationDispersion(populationsTransformed[pop]);
+        populationsTransformed[pop] = computeSinglePopulationDispersion(populationsTransformed[pop], dispersionCoefficients[pop]);
     }
 
     // transform pop-row-col to row-col-pop
-    vector<vector<vector<int>>> newPopulations = vector(populations.size(), vector(populations[0].size(), vector(populations[0][0].size(), 0)));
     for (int pop = 0; pop < populationsTransformed.size(); pop++) {
         for (int row = 0; row < populationsTransformed[0].size(); row++) {
             for (int col = 0; col < populationsTransformed[0][0].size(); col++) {
-                newPopulations[row][col][pop] = populationsTransformed[pop][row][col];
+                populations[row][col][pop] = max(populations[row][col][pop] + populationsTransformed[pop][row][col], 0);
+
             }
         }
     }
-
-    return newPopulations;
 }
 
 // computes the dispersion for a single population
 // @param population the population in a row-col format
+// @param dispersionCoefficient the coefficient of dispersion
 // @return the dispersed population
-vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> population) {
+vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> population, float dispersionCoefficient) {
     // compute the 1D dispersion for every row
     // newPopulationCols is in a row-col format
     vector<vector<int>> newPopulationRows = vector(population.size(), vector(population[0].size(), 0));
@@ -66,7 +65,7 @@ vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> popula
     vector<vector<int>> newPopulation = vector(population.size(), vector(population[0].size(), 0));
     for (int row = 0; row < population.size(); row++) {
         for (int col = 0; col < population[0].size(); col++) {
-            newPopulation[row][col] = newPopulationRows[row][col] + newPopulationCols[col][row];
+            newPopulation[row][col] = (int) ((newPopulationRows[row][col] + newPopulationCols[col][row]) * dispersionCoefficient);
         }
     }
     return newPopulation;
