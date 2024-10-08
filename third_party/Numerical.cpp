@@ -3,7 +3,7 @@
 
 vector<vector<int>> generateDispersionMatrix(int n);
 vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matrix);
-vector<int> computePopulation1DimDispersion(vector<int> populationVec, int boardWidth);
+vector<int> computePopulation1DimDispersion(vector<int> populationVec);
 vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> population);
 
 
@@ -48,7 +48,7 @@ vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> popula
     // newPopulationCols is in a row-col format
     vector<vector<int>> newPopulationRows = vector(population.size(), vector(population[0].size(), 0));
     for (int row = 0; row < population.size(); row++) {
-        newPopulationRows[row] = computePopulation1DimDispersion(population[row], population[0].size());
+        newPopulationRows[row] = computePopulation1DimDispersion(population[row]);
     }
 
     // compute the 1D dispersion for every column
@@ -59,7 +59,7 @@ vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> popula
         for (int row = 0; row < population.size(); row++) {
             populationCol[row] = population[row][col];
         }
-        newPopulationCols[col] = computePopulation1DimDispersion(populationCol, population.size());
+        newPopulationCols[col] = computePopulation1DimDispersion(populationCol);
     }
 
     // combine the 1D dispersions to yield the 2D dispersion
