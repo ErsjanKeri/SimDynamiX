@@ -14,6 +14,7 @@ set(SOURCES
         third_party/glad/src/glad.c
         third_party/Species.cpp
         third_party/Species.h
+        third_party/Numerical.cpp
 )
 
 # Find GLFW and OpenGL

@@ -65,6 +65,8 @@ int board_height = 10;
 // int because it represents for all 15 species its count of them in every block
 vector<vector<vector<int>>> board(board_height, vector<vector<int>>(board_width, vector<int>(15, 0)));
 vector<Species*> species;
+vector<vector<float>> coefficients;
+
 int selected_box = -1; // not initalised
 
 
@@ -138,6 +140,18 @@ void config_species_list() {
 }
 
 void config_dynamics() {
+
+    // for (int i = 0; i < species.size(); i++) {
+    //     ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
+    //     // checks needed so that in case of resizing, doesnt crash
+    //     if (selected_box != -1 && y < board.size() && x < board[0].size()) {
+    //         ImGui::InputInt(species[i]->name.c_str(), &board[y][x][i]);
+    //     } else {
+    //         int myInt = 0;
+    //         ImGui::InputInt(species[i]->name.c_str(), &myInt);
+    //     }
+    //     ImGui::PopStyleColor(1);
+    // }
 
     ImGui::Text("Rendering..");
     if (ImGui::Button("Simulate")) {
@@ -266,6 +280,8 @@ int main() {
     // set up default species
     species.push_back(new Species("prey", colors[0]));
     species.push_back(new Species("predator", colors[1]));
+    coefficients.emplace_back(2, 0.0f);
+    coefficients.emplace_back(2, 0.0f);
 
     // Set OpenGL version to 4.1 Core (highest supported on macOS)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
