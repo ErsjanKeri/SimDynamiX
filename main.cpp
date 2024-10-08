@@ -14,7 +14,7 @@ using namespace std;
 #define CANVAS_WIDTH 1320
 #define CANVAS_HEIGHT  820
 #define BOARD_LIMIT  20
-#define SPECIES_LIMIT 15
+#define SPECIES_LIMIT 5
 #define PADDING 50
 #define WINDOW_SPACING 10
 
@@ -25,7 +25,6 @@ using namespace std;
 
 // TODO, between 1 - 20 tiles
 // f(x,y,t) is actually density function at t
-
 
 enum State {
     CONFIGURATION,
@@ -58,8 +57,7 @@ ImVec4 HexToImVec4(uint32_t hex) {
     return ImVec4(r, g, b, a);
 }
 
-State current = CONFIGURATION;
-
+State current = CONFIGURATION
 int board_width = 10;
 int board_height = 10;
 // int because it represents for all 15 species its count of them in every block
@@ -140,18 +138,38 @@ void config_species_list() {
 }
 
 void config_dynamics() {
+    ImGui::Text("How does 'column' species affect 'color' one");
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.CellPadding = ImVec2(1, 1);  // Remove padding between cells
 
-    // for (int i = 0; i < species.size(); i++) {
-    //     ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
-    //     // checks needed so that in case of resizing, doesnt crash
-    //     if (selected_box != -1 && y < board.size() && x < board[0].size()) {
-    //         ImGui::InputInt(species[i]->name.c_str(), &board[y][x][i]);
-    //     } else {
-    //         int myInt = 0;
-    //         ImGui::InputInt(species[i]->name.c_str(), &myInt);
-    //     }
-    //     ImGui::PopStyleColor(1);
-    // }
+    // Begin a table with species.size() columns, no padding or borders between columns
+    if (ImGui::BeginTable("Grid Table", species.size(), ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoBordersInBody)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(1, 1));  // Ensure no padding between cells
+
+        for (int i = 0; i < species.size(); i++) {
+            ImGui::TableSetupColumn(species[i]->name.c_str());  // Use species name as column header
+        }
+        ImGui::TableHeadersRow();
+
+
+        for (int i = 0; i < species.size(); i++) {
+            ImGui::TableNextRow();
+            ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
+
+            for (int j = 0; j < species.size(); j++) {
+                ImGui::TableSetColumnIndex(j);  // Move to the correct column
+
+                ImGui::PushItemWidth(-1);
+                ImGui::InputFloat(("##hidden"+to_string(i*species.size()+j)).c_str(), &coefficients[i][j], 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal);
+                ImGui::PopItemWidth();
+            }
+
+            ImGui::PopStyleColor(1);
+        }
+
+        ImGui::PopStyleVar();  // Restore default padding settings
+        ImGui::EndTable();
+    }
 
     ImGui::Text("Rendering..");
     if (ImGui::Button("Simulate")) {
@@ -244,7 +262,7 @@ void renderConfiguration() {
 
 
     ImGui::SetNextWindowPos(ImVec2(PADDING, PADDING + CONFIG_WINDOW_HEIGHT + WINDOW_SPACING));
-    ImGui::SetNextWindowSize(ImVec2(CONFIG_WINDOW_WIDTH*2 + WINDOW_SPACING , CONFIG_WINDOW_HEIGHT));
+    ImGui::SetNextWindowSize(ImVec2(CONFIG_WINDOW_WIDTH*2 + WINDOW_SPACING , CONFIG_WINDOW_HEIGHT*2));
     ImGui::Begin("Dynamics Between Species/Cells", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     config_dynamics();
     ImGui::End();
@@ -280,8 +298,6 @@ int main() {
     // set up default species
     species.push_back(new Species("prey", colors[0]));
     species.push_back(new Species("predator", colors[1]));
-    coefficients.emplace_back(2, 0.0f);
-    coefficients.emplace_back(2, 0.0f);
 
     // Set OpenGL version to 4.1 Core (highest supported on macOS)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
