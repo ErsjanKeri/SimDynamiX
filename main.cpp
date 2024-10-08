@@ -70,7 +70,7 @@ int selected_box = -1; // not initalised
 
 void config_board_size() {
     int board_width_slider = board_width;
-    if (ImGui::SliderInt("Board Width", &board_width_slider, 2, BOARD_LIMIT)) {
+    if (ImGui::SliderInt("Board Width", &board_width_slider, 1, BOARD_LIMIT)) {
         if (board_width_slider > board_width) {
             // add board_width_slider - board_width els to every arr
             for (auto & i : board) {
@@ -90,7 +90,7 @@ void config_board_size() {
         cout << board[0].size() << "\n";
     }
     int board_height_slider = board_height;
-    if (ImGui::SliderInt("Board Height", &board_height_slider, 2, BOARD_LIMIT)) {
+    if (ImGui::SliderInt("Board Height", &board_height_slider, 1, BOARD_LIMIT)) {
         if (board_height_slider > board_height) {
             // add board_height_slider - board_height rows
             for (int j = 0; j < board_height_slider-board_height; j++) {
@@ -106,7 +106,6 @@ void config_board_size() {
         cout << board.size() << "\n";
     }
 }
-
 
 void config_board_species(){
 
@@ -131,10 +130,20 @@ void config_board_species(){
 
 void config_species_list() {
     for (int i = 0; i < species.size(); i++) {
-        ImGui::Text(species[i]->name.c_str());
+        // TODO, check to prevent string getting deleted, problem is the last character
+        ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
+        ImGui::InputText(("##species"+to_string(i)).c_str(), species[i]->name.data(), 128);
+        ImGui::PopStyleColor(1);
     }
 }
 
+void config_dynamics() {
+
+    ImGui::Text("Rendering..");
+    if (ImGui::Button("Simulate")) {
+        current = SIMULATION;
+    }
+}
 
 void board_render() {
     // width height == 500
@@ -201,6 +210,7 @@ void board_render() {
     style.CellPadding = originalCellPadding;
 
 }
+
 void renderConfiguration() {
 
     ImGui::SetNextWindowPos(ImVec2(PADDING, PADDING));
@@ -220,12 +230,9 @@ void renderConfiguration() {
 
 
     ImGui::SetNextWindowPos(ImVec2(PADDING, PADDING + CONFIG_WINDOW_HEIGHT + WINDOW_SPACING));
-    ImGui::SetNextWindowSize(ImVec2(CONFIG_WINDOW_WIDTH , CONFIG_WINDOW_HEIGHT));
+    ImGui::SetNextWindowSize(ImVec2(CONFIG_WINDOW_WIDTH*2 + WINDOW_SPACING , CONFIG_WINDOW_HEIGHT));
     ImGui::Begin("Dynamics Between Species/Cells", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    ImGui::Text("Rendering..");
-    if (ImGui::Button("Simulate")) {
-        current = SIMULATION;
-    }
+    config_dynamics();
     ImGui::End();
 
 
