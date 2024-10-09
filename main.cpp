@@ -8,248 +8,18 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include "third_party/Configuration.h"
 
 #include "third_party/Species.h"
-#include "third_party/Numerical.h"
+#include "third_party/settings.h"
 
 using namespace std;
-
-#define CANVAS_WIDTH 1320
-#define CANVAS_HEIGHT  820
-#define BOARD_LIMIT  20
-#define SPECIES_LIMIT 5
-#define PADDING 50
-#define WINDOW_SPACING 10
-
-#define CONFIG_WINDOW_WIDTH ((CANVAS_WIDTH - 2*PADDING - WINDOW_SPACING*2)/4)
-#define CONFIG_WINDOW_HEIGHT 200
-#define BOARD_WINDOW_WIDTH ((CANVAS_WIDTH - 2*PADDING - WINDOW_SPACING*2)/2)
-#define BOARD_WINDOW_HEIGHT 700
 
 // TODO, between 1 - 20 tiles
 // f(x,y,t) is actually density function at t
 // TODO, coefficient of reproduction
 
-enum State {
-    CONFIGURATION,
-    SIMULATION
-};
 
-uint32_t colors[15] = {
-    0xFF0000FF, // Red
-    0x00FF00FF, // Green
-    0x0000FFFF, // Blue
-    0xFFFFFF00, // Yellow
-    0xFFFF00FF, // Magenta
-    0xFF00FFFF, // Cyan
-    0x808080FF, // Gray
-    0xFFA500FF, // Orange
-    0x800080FF, // Purple
-    0x008080FF, // Teal
-    0xFF69B4FF, // Black
-    0xFFFFFFFF, // White
-    0x8B0000FF, // Dark Red
-    0x2E8B57FF, // Sea Green
-    0x4682B4FF  // Steel Blue
-};
-
-ImVec4 HexToImVec4(uint32_t hex) {
-    float r = ((hex >> 24) & 0xFF) / 255.0f;
-    float g = ((hex >> 16) & 0xFF) / 255.0f;
-    float b = ((hex >> 8) & 0xFF) / 255.0f;
-    float a = (hex & 0xFF) / 255.0f;
-    return ImVec4(r, g, b, a);
-}
-
-State current = CONFIGURATION;
-int board_width = 10;
-int board_height = 10;
-// int because it represents for all 15 species its count of them in every block
-vector<vector<vector<int>>> board(board_height, vector<vector<int>>(board_width, vector<int>(15, 0)));
-vector<Species*> species;
-vector<vector<float>> coefficients(15, vector<float>(15, 0.0f));
-
-int selected_box = -1; // not initalised
-
-
-void config_board_size() {
-    int board_width_slider = board_width;
-    if (ImGui::SliderInt("Board Width", &board_width_slider, 1, BOARD_LIMIT)) {
-        if (board_width_slider > board_width) {
-            // add board_width_slider - board_width els to every arr
-            for (auto & i : board) {
-                for (int j = 0; j < board_width_slider-board_width; j++) {
-                    i.emplace_back(15,0);
-                }
-            }
-        } else {
-            // remove board_width - board_width_slider elements
-            for (auto & i : board) {
-                for (int j = 0; j < board_width-board_width_slider; j++) {
-                    i.pop_back();
-                }
-            }
-        }
-        board_width = board_width_slider;
-        cout << board[0].size() << "\n";
-    }
-    int board_height_slider = board_height;
-    if (ImGui::SliderInt("Board Height", &board_height_slider, 1, BOARD_LIMIT)) {
-        if (board_height_slider > board_height) {
-            // add board_height_slider - board_height rows
-            for (int j = 0; j < board_height_slider-board_height; j++) {
-                board.emplace_back(board_width, vector<int>(15,0));
-            }
-        } else {
-            // remove board_height - board_height_slider rows
-            for (int j = 0; j < board_height_slider-board_height; j++) {
-                board.pop_back();
-            }
-        }
-        board_height = board_height_slider;
-        cout << board.size() << "\n";
-    }
-}
-
-void config_board_species(){
-
-    u_int counter = species.size();
-    ImGui::BeginDisabled(counter < 2); // cant get below 1
-    if (ImGui::Button("-")) {
-        species.pop_back();  // Decrement the counter when the minus button is clicked
-    }
-    ImGui::EndDisabled();
-
-    ImGui::SameLine();  // Keep the counter value on the same line as the buttons
-    ImGui::Text("%d", counter);
-    ImGui::SameLine();  // Keep the plus button on the same line
-    ImGui::BeginDisabled(counter > 14); // cant get below 1
-    if (ImGui::Button("+")) {
-        species.push_back(new Species("specie " + std::to_string(counter+1), colors[counter]));  // Increment the counter when the plus button is clicked
-    }
-    ImGui::EndDisabled();
-    ImGui::SameLine();
-    ImGui::Text("Number of Species");
-}
-
-void config_species_list() {
-    for (int i = 0; i < species.size(); i++) {
-        // TODO, check to prevent string getting deleted, problem is the last character
-        ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
-        ImGui::InputText(("##species"+to_string(i)).c_str(), species[i]->name.data(), 128);
-        ImGui::PopStyleColor(1);
-    }
-}
-
-void config_dynamics() {
-    ImGui::Text("How does 'column' species affect 'color' one");
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.CellPadding = ImVec2(1, 1);  // Remove padding between cells
-
-    // Begin a table with species.size() columns, no padding or borders between columns
-    if (ImGui::BeginTable("Grid Table", species.size(), ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoBordersInBody)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(1, 1));  // Ensure no padding between cells
-
-        for (int i = 0; i < species.size(); i++) {
-            ImGui::TableSetupColumn(species[i]->name.c_str());  // Use species name as column header
-        }
-        ImGui::TableHeadersRow();
-
-
-        for (int i = 0; i < species.size(); i++) {
-            ImGui::TableNextRow();
-            ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
-
-            for (int j = 0; j < species.size(); j++) {
-                ImGui::TableSetColumnIndex(j);  // Move to the correct column
-
-                ImGui::PushItemWidth(-1);
-                ImGui::InputFloat(("##hidden"+to_string(i*species.size()+j)).c_str(), &coefficients[i][j], 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal);
-                ImGui::PopItemWidth();
-            }
-
-            ImGui::PopStyleColor(1);
-        }
-
-        ImGui::PopStyleVar();  // Restore default padding settings
-        ImGui::EndTable();
-    }
-
-    ImGui::Text("Rendering..");
-    // if (ImGui::Button("Simulate")) {
-    //     current = SIMULATION;
-    // }
-    if (ImGui::Button("Do Step")) {
-        computeChangedPopulation(board, coefficients);
-        board = computePopulationsDispersion(board, vector<float>(0,0));
-    }
-}
-
-void board_render() {
-    // width height == 500
-    double size_x = (BOARD_WINDOW_WIDTH-65) / board_width;
-    double size_y = (BOARD_WINDOW_WIDTH-65) / board_height;
-
-    ImGuiStyle& style = ImGui::GetStyle();
-    ImVec2 originalCellPadding = style.CellPadding;     // Save original cell padding
-    // set bot to 0 to remove padding between rows
-    style.CellPadding = ImVec2(1, 1);
-
-    // ImGuiTableFlags_NoPadInnerX to remove padding between columns
-    if (ImGui::BeginTable("Grid Table", board_width, ImGuiTableFlags_SizingFixedFit )) {
-        ImVec2 buttonSize = ImVec2(size_x, size_y);  // Customize the button size here
-
-        for (int row = 0; row < board_height; row++) {
-            ImGui::TableNextRow();  // Move to the next row
-            for (int col = 0; col < board_width; col++) {
-                ImGui::TableSetColumnIndex(col);  // Set the current column
-
-                ostringstream oss;
-
-                // if (selected_box != -1 && row == selected_box/board_width && col == selected_box%board_width) {
-                    for (size_t i = 0; i < species.size(); ++i) {
-                        oss << board[row][col][i];
-                        if (i < species.size()-1) {
-                            oss<<",";
-                        }
-                    }
-                // }
-                oss << " ##Button"+to_string(row * board_width + col);
-                if (ImGui::Button(oss.str().c_str(), buttonSize)) {
-                    selected_box = row*board_width+col;
-                }
-
-            }
-        }
-        ImGui::EndTable();
-        ImGui::Spacing();
-        int x = selected_box%board_width;
-        int y = selected_box/board_width;
-        if (selected_box != -1) {
-            ImGui::Text(("Population inside square X: "
-                    + to_string(x) + ", Y: "
-                    + to_string(y)).c_str());
-        } else {
-            ImGui::Text("Population inside square");
-        }
-        ImGui::BeginDisabled(selected_box == -1);
-        for (int i = 0; i < species.size(); i++) {
-            ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
-            // checks needed so that in case of resizing, doesnt crash
-            if (selected_box != -1 && y < board.size() && x < board[0].size()) {
-                ImGui::InputInt(species[i]->name.c_str(), &board[y][x][i]);
-            } else {
-                int myInt = 0;
-                ImGui::InputInt(species[i]->name.c_str(), &myInt);
-            }
-            ImGui::PopStyleColor(1);
-        }
-        ImGui::EndDisabled();
-
-    }
-    style.CellPadding = originalCellPadding;
-
-}
 
 void renderConfiguration() {
 
@@ -257,9 +27,7 @@ void renderConfiguration() {
     ImGui::SetNextWindowSize(ImVec2(CONFIG_WINDOW_WIDTH, CONFIG_WINDOW_HEIGHT));
     ImGui::Begin("Game Configurations", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     // Create the slider and check if the value has changed
-    config_board_size();
-    config_board_species();
-
+    config_board_size_species();
     ImGui::End();
 
     ImGui::SetNextWindowPos(ImVec2(PADDING+CONFIG_WINDOW_WIDTH+WINDOW_SPACING, PADDING));
@@ -270,7 +38,7 @@ void renderConfiguration() {
 
 
     ImGui::SetNextWindowPos(ImVec2(PADDING, PADDING + CONFIG_WINDOW_HEIGHT + WINDOW_SPACING));
-    ImGui::SetNextWindowSize(ImVec2(CONFIG_WINDOW_WIDTH*2 + WINDOW_SPACING , CONFIG_WINDOW_HEIGHT*2));
+    ImGui::SetNextWindowSize(ImVec2(CONFIG_WINDOW_WIDTH*2 + WINDOW_SPACING , BOARD_WINDOW_HEIGHT-WINDOW_SPACING-CONFIG_WINDOW_HEIGHT));
     ImGui::Begin("Dynamics Between Species/Cells", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
     config_dynamics();
     ImGui::End();
@@ -285,66 +53,86 @@ void renderConfiguration() {
 
 }
 
-bool done = true;
+void renderSimulation() {
+    ImGui::SetNextWindowPos(ImVec2( PADDING, PADDING));
+    ImGui::SetNextWindowSize(ImVec2(CANVAS_WIDTH-2*PADDING, CANVAS_HEIGHT-2*PADDING));
 
-const int x_size = 100; // Number of columns
-const int y_size = 100; // Number of rows
-// Create a vector to hold the data
-vector<float> my_data(x_size * y_size);
+    int slice = 0;
 
-// Function to generate sample data
-void GenerateSampleData() {
-    for (int y = 0; y < y_size; ++y) {
-        for (int x = 0; x < x_size; ++x) {
-            // Example: Create a simple 2D Gaussian distribution
-            float dx = (x - x_size / 2) / (float)x_size;
-            float dy = (y - y_size / 2) / (float)y_size;
-            float value = std::exp(-(dx * dx + dy * dy) * 50.0f);
-            my_data[y * x_size + x] = value;
+    // Flatten the 2D slice (board of size [board_height][board_width][15]) into 1D data for heatmap visualization
+    vector<float> flattened_data;
+    for (int i = 0; i < board.size(); ++i) {
+        for (int j = 0; j < board[i].size(); ++j) {
+            flattened_data.push_back(static_cast<float>(board[i][j][slice]));
         }
     }
-}
 
-// Function to calculate min and max values in the data
-void CalculateMinMax(float& minValue, float& maxValue) {
-    auto result = std::minmax_element(my_data.begin(), my_data.end());
-    minValue = *result.first;
-    maxValue = *result.second;
-}
-
-void renderSimulation() {
-    ImGui::SetNextWindowPos(ImVec2(100, 100));
-    ImGui::SetNextWindowSize(ImVec2(300, 200));
 
     ImGui::Begin("Rendering Simulation", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
-    ImGui::Text("Rendering..");
 
-    // if (ImGui::Begin("Scalar Field Plot")) {
     //     if (ImPlot::BeginPlot("2D Scalar Field")) {
     //         // Customize the heatmap parameters as needed
     //         ImPlot::PlotHeatmap<float>(
     //     "ScalarField",
-    //             my_data.data(),
-    //             x_size,
-    //             y_size,
-    //             0.0f,
-    //             1.0f,
+    //             flattened_data.data(),
+    //             board.size(),
+    //             board[0].size(),
+    //             0,
+    //             10,
     //             nullptr,
-    //             ImPlotPoint(0.0, 0.0),
-    //             ImPlotPoint(1.0, 1.0)
+    //             ImPlotPoint(0, 0),
+    //             ImPlotPoint(board[0].size(),board.size())
     //         );
     //         ImPlot::EndPlot();
     //     }
-    //     ImGui::End();
-    // }
-    //
+    // ImGui::End();
+    // TODO, implement this for our data
+    static float values1[7][7]  = {{0.8f, 2.4f, 2.5f, 3.9f, 0.0f, 4.0f, 0.0f},
+                                    {2.4f, 0.0f, 4.0f, 1.0f, 2.7f, 0.0f, 0.0f},
+                                    {1.1f, 2.4f, 0.8f, 4.3f, 1.9f, 4.4f, 0.0f},
+                                    {0.6f, 0.0f, 0.3f, 0.0f, 3.1f, 0.0f, 0.0f},
+                                    {0.7f, 1.7f, 0.6f, 2.6f, 2.2f, 6.2f, 0.0f},
+                                    {1.3f, 1.2f, 0.0f, 0.0f, 0.0f, 3.2f, 5.1f},
+                                    {0.1f, 2.0f, 0.0f, 1.4f, 0.0f, 1.9f, 6.3f}};
+    static float scale_min       = 0;
+    static float scale_max       = 6.3f;
+    static const char* xlabels[] = {"C1","C2","C3","C4","C5","C6","C7"};
+    static const char* ylabels[] = {"R1","R2","R3","R4","R5","R6","R7"};
+
+    static ImPlotColormap map = ImPlotColormap_Viridis;
+    if (ImPlot::ColormapButton(ImPlot::GetColormapName(map),ImVec2(225,0),map)) {
+        map = (map + 1) % ImPlot::GetColormapCount();
+        ImPlot::BustColorCache("##Heatmap1");
+    }
+    ImGui::SameLine();
+    ImGui::LabelText("##Colormap Index", "%s", "Change Colormap");
+    ImGui::SetNextItemWidth(225);
+    ImGui::DragFloatRange2("Min / Max",&scale_min, &scale_max, 0.01f, -20, 20);
+
+    static ImPlotHeatmapFlags hm_flags = 0;
+
+    ImGui::CheckboxFlags("Column Major", (unsigned int*)&hm_flags, ImPlotHeatmapFlags_ColMajor);
+
+    static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks;
+
+    ImPlot::PushColormap(map);
+
+    if (ImPlot::BeginPlot("##Heatmap1",ImVec2(225,225),ImPlotFlags_NoLegend|ImPlotFlags_NoMouseText)) {
+        ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
+        ImPlot::SetupAxisTicks(ImAxis_X1,0 + 1.0/14.0, 1 - 1.0/14.0, 7, xlabels);
+        ImPlot::SetupAxisTicks(ImAxis_Y1,1 - 1.0/14.0, 0 + 1.0/14.0, 7, ylabels);
+        ImPlot::PlotHeatmap("heat",values1[0],7,7,scale_min,scale_max,"%g",ImPlotPoint(0,0),ImPlotPoint(1,1),hm_flags);
+        ImPlot::EndPlot();
+    }
+    ImGui::SameLine();
+    ImPlot::ColormapScale("##HeatScale",scale_min, scale_max, ImVec2(60,225));
+
+    ImGui::End();
 
     if (ImGui::Button("Stop Simulation")) {
         current = CONFIGURATION;
         // done = true;
     }
-
-    ImGui::End();
 }
 
 int main() {

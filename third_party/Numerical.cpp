@@ -65,7 +65,7 @@ vector<vector<int>> computeSinglePopulationDispersion(vector<vector<int>> popula
     vector<vector<int>> newPopulation = vector(population.size(), vector(population[0].size(), 0));
     for (int row = 0; row < population.size(); row++) {
         for (int col = 0; col < population[0].size(); col++) {
-            newPopulation[row][col] = (int) ((newPopulationRows[row][col] + newPopulationCols[col][row]) * dispersionCoefficient);
+            newPopulation[row][col] = static_cast<int>((newPopulationRows[row][col] + newPopulationCols[col][row]) * dispersionCoefficient);
         }
     }
     return newPopulation;
@@ -89,11 +89,11 @@ vector<vector<int>> generateDispersionMatrix(int n) {
     auto dispersionMatrix = vector(n, vector(n, 0));
     for (int i = 0; i < n; i++) {
         if (i == 0) {
-            dispersionMatrix[i][i] = -1;
+            dispersionMatrix[i][i] = -2;
             dispersionMatrix[i][i + 1] = 1;
         } else if (i == n - 1) {
             dispersionMatrix[i][i - 1] = 1;
-            dispersionMatrix[i][i] = -1;
+            dispersionMatrix[i][i] = -2;
         } else {
             dispersionMatrix[i][i - 1] = 1;
             dispersionMatrix[i][i] = -2;

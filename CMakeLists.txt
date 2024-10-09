@@ -17,6 +17,7 @@ set(SOURCES
         third_party/Species.h
         third_party/Numerical.cpp
         third_party/implot/implot_items.cpp
+        third_party/Configuration.cpp
 )
 
 # Find GLFW and OpenGL
