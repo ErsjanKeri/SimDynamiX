@@ -1,6 +1,11 @@
 #ifndef SETTINGS
 #define SETTINGS
 
+#include "imgui.h"
+#include <GLFW/glfw3.h>
+#include <vector>
+#include "./Species.h"
+
 #define CANVAS_WIDTH 1320
 #define CANVAS_HEIGHT  820
 #define BOARD_LIMIT  20
@@ -13,6 +18,8 @@
 #define BOARD_WINDOW_WIDTH ((CANVAS_WIDTH - 2*PADDING - WINDOW_SPACING*2)/2)
 #define BOARD_WINDOW_HEIGHT 700
 
+
+using namespace std;
 
 inline uint32_t colors[15] = {
     0xFF0000FF, // Red
@@ -53,10 +60,13 @@ inline int board_height = 10;
 inline vector<vector<vector<int>>> board(board_height, vector<vector<int>>(board_width, vector<int>(15, 0)));
 inline vector<Species*> species;
 inline vector<vector<float>> coefficients(15, vector<float>(15, 0.0f));
-inline vector<float> dispersion_coefficients(15, 0.4f);
+inline vector<float> dispersion_coefficients(15, 0.1f);
 
 inline int selected_box = -1; // not initalised
+inline int number_steps_t = 10;
 
+// 5 d, [step][population][y][x]
+inline vector<vector<vector<vector<int>>>> steps;
 
 
 #endif

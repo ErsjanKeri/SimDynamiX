@@ -18,6 +18,8 @@ set(SOURCES
         third_party/Numerical.cpp
         third_party/implot/implot_items.cpp
         third_party/Configuration.cpp
+        third_party/Simulation.h
+        third_party/Simulation.cpp
 )
 
 # Find GLFW and OpenGL

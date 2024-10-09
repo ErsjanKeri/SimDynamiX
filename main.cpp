@@ -9,17 +9,12 @@
 #include <vector>
 #include <sstream>
 #include "third_party/Configuration.h"
+#include "third_party/Simulation.h"
 
 #include "third_party/Species.h"
 #include "third_party/settings.h"
 
 using namespace std;
-
-// TODO, between 1 - 20 tiles
-// f(x,y,t) is actually density function at t
-// TODO, coefficient of reproduction
-
-
 
 void renderConfiguration() {
 
@@ -56,83 +51,26 @@ void renderConfiguration() {
 void renderSimulation() {
     ImGui::SetNextWindowPos(ImVec2( PADDING, PADDING));
     ImGui::SetNextWindowSize(ImVec2(CANVAS_WIDTH-2*PADDING, CANVAS_HEIGHT-2*PADDING));
-
-    int slice = 0;
-
-    // Flatten the 2D slice (board of size [board_height][board_width][15]) into 1D data for heatmap visualization
-    vector<float> flattened_data;
-    for (int i = 0; i < board.size(); ++i) {
-        for (int j = 0; j < board[i].size(); ++j) {
-            flattened_data.push_back(static_cast<float>(board[i][j][slice]));
-        }
-    }
-
-
     ImGui::Begin("Rendering Simulation", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    //     if (ImPlot::BeginPlot("2D Scalar Field")) {
-    //         // Customize the heatmap parameters as needed
-    //         ImPlot::PlotHeatmap<float>(
-    //     "ScalarField",
-    //             flattened_data.data(),
-    //             board.size(),
-    //             board[0].size(),
-    //             0,
-    //             10,
-    //             nullptr,
-    //             ImPlotPoint(0, 0),
-    //             ImPlotPoint(board[0].size(),board.size())
-    //         );
-    //         ImPlot::EndPlot();
-    //     }
-    // ImGui::End();
-    // TODO, implement this for our data
-    static float values1[7][7]  = {{0.8f, 2.4f, 2.5f, 3.9f, 0.0f, 4.0f, 0.0f},
-                                    {2.4f, 0.0f, 4.0f, 1.0f, 2.7f, 0.0f, 0.0f},
-                                    {1.1f, 2.4f, 0.8f, 4.3f, 1.9f, 4.4f, 0.0f},
-                                    {0.6f, 0.0f, 0.3f, 0.0f, 3.1f, 0.0f, 0.0f},
-                                    {0.7f, 1.7f, 0.6f, 2.6f, 2.2f, 6.2f, 0.0f},
-                                    {1.3f, 1.2f, 0.0f, 0.0f, 0.0f, 3.2f, 5.1f},
-                                    {0.1f, 2.0f, 0.0f, 1.4f, 0.0f, 1.9f, 6.3f}};
-    static float scale_min       = 0;
-    static float scale_max       = 6.3f;
-    static const char* xlabels[] = {"C1","C2","C3","C4","C5","C6","C7"};
-    static const char* ylabels[] = {"R1","R2","R3","R4","R5","R6","R7"};
+    simulations_list();
 
-    static ImPlotColormap map = ImPlotColormap_Viridis;
-    if (ImPlot::ColormapButton(ImPlot::GetColormapName(map),ImVec2(225,0),map)) {
-        map = (map + 1) % ImPlot::GetColormapCount();
-        ImPlot::BustColorCache("##Heatmap1");
+    if (ImGui::Button("Stop Simulation")) {
+        // set the board to the initial state steps[0]
+        for (int k = 0; k < steps[0].size(); k++) {
+            for (int y = 0; y < steps[0][0].size(); y++) {
+                for (int x = 0; x < steps[0][0][0].size(); x++) {
+                    board[y][x][k] = steps[0][k][y][x];
+                }
+            }
+        }
+        // empty the steps vector
+        steps.clear();
+        current = CONFIGURATION;
     }
-    ImGui::SameLine();
-    ImGui::LabelText("##Colormap Index", "%s", "Change Colormap");
-    ImGui::SetNextItemWidth(225);
-    ImGui::DragFloatRange2("Min / Max",&scale_min, &scale_max, 0.01f, -20, 20);
-
-    static ImPlotHeatmapFlags hm_flags = 0;
-
-    ImGui::CheckboxFlags("Column Major", (unsigned int*)&hm_flags, ImPlotHeatmapFlags_ColMajor);
-
-    static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks;
-
-    ImPlot::PushColormap(map);
-
-    if (ImPlot::BeginPlot("##Heatmap1",ImVec2(225,225),ImPlotFlags_NoLegend|ImPlotFlags_NoMouseText)) {
-        ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
-        ImPlot::SetupAxisTicks(ImAxis_X1,0 + 1.0/14.0, 1 - 1.0/14.0, 7, xlabels);
-        ImPlot::SetupAxisTicks(ImAxis_Y1,1 - 1.0/14.0, 0 + 1.0/14.0, 7, ylabels);
-        ImPlot::PlotHeatmap("heat",values1[0],7,7,scale_min,scale_max,"%g",ImPlotPoint(0,0),ImPlotPoint(1,1),hm_flags);
-        ImPlot::EndPlot();
-    }
-    ImGui::SameLine();
-    ImPlot::ColormapScale("##HeatScale",scale_min, scale_max, ImVec2(60,225));
 
     ImGui::End();
 
-    if (ImGui::Button("Stop Simulation")) {
-        current = CONFIGURATION;
-        // done = true;
-    }
 }
 
 int main() {

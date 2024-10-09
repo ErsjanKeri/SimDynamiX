@@ -1,6 +1,8 @@
 #include "Numerical.h"
 #include <algorithm>
 #include <vector>
+#include "./settings.h"
+
 
 vector<vector<int>> generateDispersionMatrix(int n);
 vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matrix);
@@ -146,3 +148,26 @@ void computeChangedPopulation(vector<vector<vector<int>>> & board, vector<vector
         }
     }
 }
+
+// convert [y][x][k] to [k][y][x]
+void add_to_steps() {
+    vector<vector<vector<int>>> res = vector(species.size(), vector<vector<int>>(board.size(), vector<int>(board[0].size(),0)));
+    for (int y = 0; y < board.size(); y++) {
+        for (int x = 0; x < board[0].size(); x++) {
+            for (int k = 0; k < species.size(); k++) {
+                res[k][y][x] = board[y][x][k];
+            }
+        }
+    }
+    steps.push_back(res);
+}
+
+void prepareCalculations() {
+    add_to_steps();
+    for (int i = 0; i < number_steps_t; i++) {
+        computeChangedPopulation(board, coefficients);
+        computePopulationsDispersion(board, dispersion_coefficients);
+        add_to_steps();
+    }
+}
+

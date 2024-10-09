@@ -107,8 +107,8 @@ void config_dynamics() {
             ImGui::PushItemWidth(-1);
 
             // input dispersion limited in range between [0:0.5]
-            ImGui::InputFloat(("##hidden"+to_string(i*species.size())+"dispersion").c_str(), &dispersion_coefficients[i], 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal);
-            dispersion_coefficients[i] = std::clamp(dispersion_coefficients[i], 0.0f, 0.5f);
+            ImGui::InputFloat(("##hidden"+to_string(i*species.size())+"dispersion").c_str(), &dispersion_coefficients[i], 0.0f, 0.0f, "%.5f", ImGuiInputTextFlags_CharsDecimal);
+            dispersion_coefficients[i] = std::clamp(dispersion_coefficients[i], 0.0f, 0.4f);
 
             ImGui::PopItemWidth();
             ImGui::PopStyleColor(1);
@@ -118,24 +118,13 @@ void config_dynamics() {
         ImGui::EndTable();
     }
 
-    // Input how many timesteps to calculate
-
-
-    // ImGui::Text("Rendering..");
+    // TODO set max 2000 for later
+    // set min = 1 and max = 2000
+    ImGui::InputInt("Timesteps", &number_steps_t);
+    number_steps_t = std::clamp(number_steps_t, 1, 2000);
     if (ImGui::Button("Simulate")) {
+        prepareCalculations();
         current = SIMULATION;
-    }
-
-    // sexy_counter++;
-    // if ((sexy_counter % 40) == 0 && start) {
-    //     computeChangedPopulation(board, coefficients);
-    //     computePopulationsDispersion(board, vector<float>(15,0.01));
-    // }
-
-    if (ImGui::Button("Do Step")) {
-        // start = true;
-        computeChangedPopulation(board, coefficients);
-        computePopulationsDispersion(board, vector<float>(40,0));
     }
 }
 
