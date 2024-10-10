@@ -1,4 +1,4 @@
-# Population Dynamics GUI in C++
+# SymDynamiX in C++
 
 This project is a C++ graphical user interface (GUI) application that allows users to configure and simulate population dynamics on a discrete grid. Users can adjust the grid size, populate it with various species, set interaction coefficients, and observe how populations spread and interact over time according to specified numerical methods.
 
