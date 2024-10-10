@@ -276,22 +276,22 @@ $$
 
 To approximate this on a **discrete grid**, we use the **finite difference method**.
 
-- $ u_{i,j} $: The value at grid point ```board[j][i]```.
-- Grid spacing in both directions is $ h $, in our case $ h $ is implicitly 1.
+- $`u_{i,j}`$: The value at grid point ```board[j][i]```.
+- Grid spacing in both directions is $`h`$, in our case $`h`$ is implicitly 1.
 
-The **finite difference approximation** of the Laplacian at point $(i, j)$  is:
+The **finite difference approximation** of the Laplacian at point $`(i, j)`$  is:
 $$
 \nabla^2 u_{i,j} \approx \frac{u_{i+1,j} - 2u_{i,j} + u_{i-1,j}}{h^2} + \frac{u_{i,j+1} - 2u_{i,j} + u_{i,j-1}}{h^2}
 $$
 
-This formula approximates the second derivatives in the $ x $ and $ y $ directions using neighboring points.
+This formula approximates the second derivatives in the $`x`$ and $`y`$ directions using neighboring points.
 How we come to this approximation can be calculated via the Taylor series. 
 ## Discretizing the Time Derivative
 
 The **time derivative** is also approximated using a **finite difference**. Let:
 
-- $ u_{i,j}^n $ be the value at grid point $(i, j)$ at time step $ n $.
-- Time step is $ \Delta t $. In our case our timestep is also implicitly 1, as our initial goal was to work with discrete values. 
+- $`u_{i,j}^n`$ be the value at grid point $`(i, j)`$ at time step $`n`$.
+- Time step is $`\Delta t`$. In our case our timestep is also implicitly 1, as our initial goal was to work with discrete values. 
 
 Using the **explicit Euler method**:
 
