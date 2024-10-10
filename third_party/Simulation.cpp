@@ -3,8 +3,12 @@
 #include "./settings.h"
 #include "vector"
 
-
-
+// TODO labels should be generated only once
+// TODO add a text for every graph with the name of species
+// TODO fix by calculation at numerical to prevent reconversion to correct format
+// TODO pop dynamics dp/dt = k*q when p is but 0 should not change
+// TODO optimisation possible through SIMD
+// TODO either let the user input themselves the scaling_max or calculate it similar to median
 using namespace std;
 
 // index = selected_timestep-1
