@@ -297,7 +297,7 @@ The **time derivative** is also approximated using a **finite difference**. Let:
 Using the **explicit Euler method**:
 
 $$
-\frac{\partial u}{\partial t} \approx \frac{u_{i,j}^{n+1} - u_{i,j}^n}{\Delta t}
+u_{i,j}^{n+1} = u_{i,j}^{n} + \Delta t \frac{\partial u}{\partial t} \quad \text{therefore} \quad \frac{\partial u}{\partial t} \approx \frac{u_{i,j}^{n+1} - u_{i,j}^{n}}{\Delta t}
 $$
 
 ## Combining Time and Space Discretization
