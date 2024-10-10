@@ -168,23 +168,27 @@ To simulate the dispersion (spread) of populations across the grid, the applicat
   }
   ```
 
-- **Matrix-Vector Multiplication**: The population vector is multiplied by the dispersion matrix to compute the dispersion effect.
+- **Matrix-Vector Multiplication**: The population vector is multiplied by the dispersion matrix to compute the dispersion effect. The Matrix here is Tri-Diagonal, therefore matrix-vector multiplication can be done in $`O(n)`$ instead of $`O(n^2)`$
 
   ```cpp
-  vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matrix) {
-      vector<int> resultVector = vector(vec.size(), 0);
-      for (int row = 0; row < matrix.size(); row++) {
-          int sum = 0;
-          for (int col = 0; col < matrix.size(); col++) {
-              sum += vec[col] * matrix[row][col];
-          }
-          resultVector[row] = sum;
-      }
-      return resultVector;
-  }
+    vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matrix) {
+        vector<int> resultVector(vec.size(), 0);
+        for (int row = 0; row < matrix.size(); row++) {
+            int sum = 0;
+            if (row > 0) {
+                sum += vec[row - 1] * matrix[row][row - 1]; // left diagonal element
+            }
+            sum += vec[row] * matrix[row][row]; // main diagonal element
+            if (row < matrix.size() - 1) {
+                sum += vec[row + 1] * matrix[row][row + 1]; // right diagonal element
+            }
+            resultVector[row] = sum;
+        }
+        return resultVector;
+    }
   ```
 
-- **Combining Row and Column Dispersion**: After computing the dispersion for rows and columns, the results are combined and scaled by the dispersion coefficient.
+- **Combining Row and Column Dispersion**: After computing the dispersion for rows and columns, the results are combined and multiplied with the dispersion coefficient. Why/How this works see [Mathematical Formulation of Diffusion](#mathematical-formulation-of-diffusion)
 
   ```cpp
   // Combining the 1D dispersions to yield the 2D dispersion

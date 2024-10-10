@@ -87,8 +87,6 @@ void simulations_list() {
                 }
                 // END LABELS
 
-
-
                 static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks;
 
                 ImPlot::PushColormap(map);

@@ -110,12 +110,15 @@ vector<vector<int>> generateDispersionMatrix(int n) {
 // @param matrix the matrix in the multiplication
 // @return the result of the multiplication
 vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matrix) {
-    vector<int> resultVector = vector(vec.size(), 0);
-
+    vector<int> resultVector(vec.size(), 0);
     for (int row = 0; row < matrix.size(); row++) {
         int sum = 0;
-        for (int col = 0; col < matrix.size(); col++) {
-            sum += vec[col] * matrix[row][col];
+        if (row > 0) {
+            sum += vec[row - 1] * matrix[row][row - 1]; // left diagonal element
+        }
+        sum += vec[row] * matrix[row][row]; // main diagonal element
+        if (row < matrix.size() - 1) {
+            sum += vec[row + 1] * matrix[row][row + 1]; // right diagonal element
         }
         resultVector[row] = sum;
     }
