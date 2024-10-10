@@ -261,7 +261,7 @@ $$
 
 where:
 
-- $`u = u(x, y, t)`$: The quantity being diffused (e.g., population density).
+- $`u = u(x, y, t)`$: The quantity being diffused (e.g., population density). ```steps[t][y][x]``` $`\approx u(x,y,t)`$.
 - $`\frac{\partial u}{\partial t}`$: The **time derivative** of $`u`$, representing how $`u`$ changes over time.
 - $`D`$: The **diffusion coefficient**, which controls the rate of diffusion.
 - $`\nabla^2 u`$: The **Laplacian** of $`u`$, which represents the rate of change in $`u`$ across space, in our case space is only two dimensions (that being width and height of the board).
@@ -286,7 +286,7 @@ $$
 $$
 
 This formula approximates the second derivatives in the $`x`$ and $`y`$ directions using neighboring points.
-How we come to this approximation can be calculated via the Taylor series. 
+How we come to this approximation is that we develop the Taylor series up to the third term for $`u(x,y,t)`$ around $`x \pm h`$ and $`y \pm h`$. 
 ## Discretizing the Time Derivative
 
 The **time derivative** is also approximated using a **finite difference**. Let:
