@@ -261,10 +261,10 @@ $$
 
 where:
 
-- $u = u(x, y, t)$: The quantity being diffused (e.g., population density).
-- $ \frac{\partial u}{\partial t}$: The **time derivative** of $u$, representing how $ u $ changes over time.
-- $D$: The **diffusion coefficient**, which controls the rate of diffusion.
-- $\nabla^2 u$: The **Laplacian** of $u$, which represents the rate of change in $ u $ across space, in our case space is only two dimensions (that being width and height of the board).
+- $`u = u(x, y, t)`$: The quantity being diffused (e.g., population density).
+- $`\frac{\partial u}{\partial t}`$: The **time derivative** of $`u`$, representing how $`u`$ changes over time.
+- $`D`$: The **diffusion coefficient**, which controls the rate of diffusion.
+- $`\nabla^2 u`$: The **Laplacian** of $`u`$, which represents the rate of change in $`u`$ across space, in our case space is only two dimensions (that being width and height of the board).
 
 ## Laplacian and Spatial Discretization
 
