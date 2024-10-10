@@ -101,7 +101,6 @@ void simulations_list() {
                     ImPlot::EndPlot();
                 }
 
-
                 // plot the graph for board[selected_step][i]
 
                 ImGui::SameLine();
