@@ -270,9 +270,9 @@ where:
 
 The **Laplacian** in two dimensions (for our board) would be:
 
-$$
+$$`
 \nabla^2 u = \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}
-$$
+`$$
 
 To approximate this on a **discrete grid**, we use the **finite difference method**.
 
@@ -280,9 +280,10 @@ To approximate this on a **discrete grid**, we use the **finite difference metho
 - Grid spacing in both directions is $`h`$, in our case $`h`$ is implicitly 1.
 
 The **finite difference approximation** of the Laplacian at point $`(i, j)`$  is:
-$$
+
+$$`
 \nabla^2 u_{i,j} \approx \frac{u_{i+1,j} - 2u_{i,j} + u_{i-1,j}}{h^2} + \frac{u_{i,j+1} - 2u_{i,j} + u_{i,j-1}}{h^2}
-$$
+`$$
 
 This formula approximates the second derivatives in the $`x`$ and $`y`$ directions using neighboring points.
 How we come to this approximation can be calculated via the Taylor series. 
@@ -295,25 +296,25 @@ The **time derivative** is also approximated using a **finite difference**. Let:
 
 Using the **explicit Euler method**:
 
-$$
+$$`
 \frac{\partial u}{\partial t} \approx \frac{u_{i,j}^{n+1} - u_{i,j}^n}{\Delta t}
-$$
+`$$
 
 ## Combining Time and Space Discretization
 
 By combining the discretized time and space derivatives, we approximate the diffusion equation as:
 
-$$
+$$`
 \frac{u_{i,j}^{n+1} - u_{i,j}^n}{\Delta t} = D \left( \frac{u_{i+1,j}^n - 2u_{i,j}^n + u_{i-1,j}^n}{h^2} + \frac{u_{i,j+1}^n - 2u_{i,j}^n + u_{i,j-1}^n}{h^2} \right)
-$$
+`$$
 
 Rearranging to solve for $ u_{i,j}^{n+1} $:
 
-$$
+$$`
 u_{i,j}^{n+1} = u_{i,j}^n + \Delta t \cdot D \left( \frac{u_{i+1,j}^n - 2u_{i,j}^n + u_{i-1,j}^n}{h^2} + \frac{u_{i,j+1}^n - 2u_{i,j}^n + u_{i,j-1}^n}{h^2} \right)
-$$
+`$$
 
-This equation tells us how to update the value of $ u $ at each grid point from time step $ n $ to $ n+1 $, displaying the effects of diffusion.
+This equation tells us how to update the value of $`u`$ at each grid point from time step $`n`$ to $`n+1`$, displaying the effects of diffusion.
 This last step is essentially what happens in ```computePopulationsDispersion(vector<vector<vector<int>>> & populations, vector<float> dispersionCoefficients)```
 ## Connection to the Code
 
