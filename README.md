@@ -95,15 +95,20 @@ This application simulates the spread and interaction of multiple species across
 
 3. **Build the Project**:
 
-    ## TODO ANTON 
+    ```bash
+   mkdir build 
+   cd build 
+   cmake .. 
+   make 
+    ```
 
 ## Usage
 
 Run the compiled executable:
 
-```bash
-./population_gui (TODO ANTON)
-```
+  ```bash
+  ./SimDynamiX
+  ```
 
 ### Configuring the Board
 
@@ -396,4 +401,3 @@ Ensure all dependencies are correctly installed and linked. Adjust your build sy
 ```bash
 TODO ANTON 
 ```
-

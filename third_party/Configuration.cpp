@@ -28,7 +28,6 @@ void config_board_size_species() {
             }
         }
         board_width = board_width_slider;
-        cout << board[0].size() << "\n";
     }
     int board_height_slider = board_height;
     if (ImGui::SliderInt("Board Height", &board_height_slider, 1, BOARD_LIMIT)) {
@@ -44,7 +43,6 @@ void config_board_size_species() {
             }
         }
         board_height = board_height_slider;
-        cout << board.size() << "\n";
     }
 
     u_int counter = species.size();
