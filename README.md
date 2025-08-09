@@ -1,50 +1,40 @@
 # SymDynamiX in C++
 
-This project is a C++ graphical user interface (GUI) application that allows users to configure and simulate population dynamics on a discrete grid. Users can adjust the grid size, populate it with various species, set interaction coefficients, and observe how populations spread and interact over time according to specified numerical methods.
+This project is a C++ graphical user interface (GUI) application that allows users to configure and simulate population dynamics on a discrete grid. Users can adjust the grid size, populate it with various species, set interaction coefficients, and observe how populations spread and interact over time according to selected numerical methods.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
 - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
 - [Usage](#usage)
-    - [Configuring the Board](#configuring-the-board)
-    - [Managing Species](#managing-species)
-    - [Setting Interaction Coefficients](#setting-interaction-coefficients)
-    - [Running Simulations](#running-simulations)
-    - [Visualizing the Board](#visualizing-the-board)
+  - [Configuring the Board](#configuring-the-board)
+  - [Managing Species](#managing-species)
+  - [Setting Interaction Coefficients](#setting-interaction-coefficients)
+  - [Running Simulations](#running-simulations)
+  - [Visualizing the Board](#visualizing-the-board)
 - [Simulation Details](#simulation-details)
-    - [Numerical Methods](#numerical-methods)
-        - [Population Dispersion](#population-dispersion)
-        - [Interaction Coefficients](#interaction-coefficients)
+  - [Numerical Methods](#numerical-methods)
+    - [Population Interaction](#population-interaction)
+    - [Population Dispersion](#population-dispersion)
     - [Algorithm Workflow](#algorithm-workflow)
 - [Mathematical Formulation of Diffusion](#mathematical-formulation-of-diffusion)
-    - [The Diffusion Equation](#the-diffusion-equation)
-    - [Laplacian and Spatial Discretization](#laplacian-and-spatial-discretization)
-    - [Discretizing the Time Derivative](#discretizing-the-time-derivative)
-    - [Combining Time and Space Discretization](#combining-time-and-space-discretization)
-    - [Connection to the Code](#connection-to-the-code)
+  - [The Diffusion Equation](#the-diffusion-equation)
+  - [Laplacian and Spatial Discretization](#laplacian-and-spatial-discretization)
+  - [Time Discretization](#time-discretization)
+  - [Explicit vs. ADI](#explicit-vs-adi)
+  - [Boundary Conditions](#boundary-conditions)
 - [Code Structure](#code-structure)
-    - [Main Components](#main-components)
-    - [Important Variables](#important-variables)
+  - [Main Components](#main-components)
+  - [Important Variables](#important-variables)
 - [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+- [Used Libraries](#used-libraries)
 - [Additional Information](#additional-information)
-    - [Dependencies](#dependencies)
-    - [Building from Source](#building-from-source)
-    - [Extending the Application](#extending-the-application)
-    - [Troubleshooting](#troubleshooting)
-- [How the Simulation Works](#how-the-simulation-works)
-    - [Population Interaction](#population-interaction)
-    - [Population Dispersion](#population-dispersion-1)
-    - [Overall Algorithm](#overall-algorithm)
-    - [Visualization with ImPlot](#visualization-with-implot)
-    - [Key Functions in `Numerical.cpp`](#key-functions-in-numericalcpp)
-    - [Understanding the Code](#understanding-the-code)
-    - [Conclusion](#conclusion)
+  - [Dependencies](#dependencies)
+  - [Building from Source](#building-from-source)
+  - [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -56,318 +46,188 @@ This application simulates the spread and interaction of multiple species across
 - Add or remove species.
 - Configure how species interact with each other using coefficients.
 - Set dispersion rates for species.
-- Populate the grid with initial populations.
-- Run simulations over a specified number of time steps.
+- Choose a diffusion method (Explicit vs. ADI) and boundary conditions.
+- Control the simulation time step.
+- Compare diffusion methods side-by-side.
 - Visualize the population dynamics over time.
 
 ## Features
 
-- **Interactive GUI**: Built using Dear ImGui, providing an intuitive interface.
+- **Interactive GUI**: Built with Dear ImGui for immediate-mode UI.
 - **Dynamic Configuration**: Adjust grid size and species parameters on the fly.
-- **Visualization**: Visual representation of the grid and population distributions.
-- **Customizable Interactions**: Define how species affect each other.
-- **Simulation Control**: Set the number of time steps and simulate population dynamics.
-- **Numerical Methods**: Implements specific numerical algorithms for population dispersion and interaction.
+- **Multiple Numerical Methods**: Choose between an explicit finite-difference scheme and an ADI (Crank–Nicolson) scheme.
+- **Boundary Conditions**: Select Dirichlet (absorbing) or Neumann (zero-flux).
+- **Time-Step Control**: Set the simulation time step to explore stability and convergence behavior.
+- **Method Comparison**: Optional side-by-side visualization comparing the current method with the alternative.
+- **Visualization**: Heatmaps with selectable colormaps and autoscaling.
 
 ## Getting Started
 
 ### Prerequisites
 
-- **C++ Compiler**: A C++17 compliant compiler (e.g., GCC, Clang, MSVC).
-- **Dear ImGui**: The immediate mode GUI library.
-- **ImPlot**: For plotting and visualizing data within ImGui.
-- **CMake**: For building the project (optional but recommended).
+- **C++ Compiler**: C++17+ (e.g., GCC, Clang, MSVC).
+- **CMake**: For building the project.
+- **GLFW + OpenGL**: Windowing and graphics.
+- **Dear ImGui + ImPlot**: GUI and plotting.
 
 ### Installation
 
-1. **Clone the Repository**:
-
+1. Clone the repository:
    ```bash
    git clone https://github.com/ErsjanKeri/SimDynamiX.git
    ```
-
-2. **Install Dependencies**:
-
-    - Ensure that Dear ImGui and ImPlot are included in your project. You can add them as submodules or include them in your project directory.
-    ```bash
-    git submodule update --init --recursive
-    ```
-
-3. **Build the Project**:
-
-    ```bash
-   mkdir build 
-   cd build 
-   cmake .. 
-   make 
-    ```
+2. Initialize submodules (if applicable):
+   ```bash
+   git submodule update --init --recursive
+   ```
+3. Build:
+   ```bash
+   mkdir build
+   cd build
+   cmake ..
+   make
+   ```
 
 ## Usage
 
-Run the compiled executable:
-
-  ```bash
-  ./SimDynamiX
-  ```
+Run the executable:
+```bash
+./SimDynamiX
+```
 
 ### Configuring the Board
 
-- **Board Width and Height**: Adjust the dimensions of the grid using the sliders labeled "Board Width" and "Board Height".
-- The grid resizes dynamically, and you can see the current size printed in the console.
+- Set **Board Width** and **Board Height** with sliders (grid resizes immediately).
 
 ### Managing Species
 
-- **Add Species**: Click the `+` button to add a new species. Each species is assigned a default name and color.
-- **Remove Species**: Click the `-` button to remove the last species. The number of species cannot be less than one.
-- **Rename Species**: Enter a new name in the input field next to each species to rename it.
+- **Add Species**: Click “+”.
+- **Remove Species**: Click “-”.
+- **Rename Species**: Edit the name in the species list.
 
 ### Setting Interaction Coefficients
 
-- **Interaction Matrix**: The table labeled "How does 'column' species affect 'color' one" allows you to set coefficients that define how each species affects others.
-    - **Coefficients**: Enter a floating-point number in each cell to represent the interaction strength.
-    - **Dispersion**: Set the dispersion rate for each species in the last column. This value must be between 0 and 0.4. You can imagine: the smaller the dispersion, the less "conductive"/less spread happens 
+- In “Dynamics Between Species/Cells”, fill the interaction matrix:
+  - Each table cell sets how “column species” affects the “row/color species”.
+  - Set per-species **Dispersion** in the last column (clamped to [0, 0.4]).
+
+- Choose numeric options:
+  - **Diffusion Method**: Explicit (FD) or ADI (Crank–Nicolson).
+  - **Boundary Condition**: Dirichlet (absorbing) or Neumann (zero-flux).
+  - **Delta t**: Simulation time step.
+  - Optional: **Compare Explicit vs ADI (side-by-side)** toggles a dual-panel view in the Simulation.
+
+- A hint is shown if explicit settings may be unstable (rule of thumb for uniform grid spacing: max D × Δt ≲ 0.25).
 
 ### Running Simulations
 
-- **Timesteps**: Specify the number of timesteps for the simulation in the "Timesteps" input field. The value must be between 1 and 2000.
-- **Simulate**: Click the "Simulate" button to run the simulation with the current settings. The application will transition to the simulation view.
+- **Timesteps**: Enter the number of steps to run (1–2000).
+- Click **Simulate** to run and switch to the simulation view.
+- Click **Stop Simulation** to return to the configuration view (restores the initial state of the current run).
 
 ### Visualizing the Board
 
-- **Grid Display**: The grid represents the discrete field where populations exist.
-    - Each cell shows the population counts for all species in that location.
-- **Select a Cell**: Click on a cell to select it. The population details for that cell will be displayed below the grid.
-- **Edit Populations**: When a cell is selected, you can adjust the population counts for each species using the input fields provided.
+- The Simulation view shows per-species heatmaps.
+- Use the **Timestep** slider to scrub through time.
+- Change **colormap** from the toolbar.
+- Enable **Auto scale heatmaps** to adapt color range to data.
+- When comparison is enabled, left shows the current method and right shows the alternate method for the same configuration.
 
 ## Simulation Details
 
 ### Numerical Methods
 
-The simulation uses specific numerical methods to model how populations spread and interact over time. These methods include:
+#### Population Interaction
+- At each cell, the species vector is updated from a linear interaction model via a coefficient matrix (one set of coefficients per “affected” species).
 
 #### Population Dispersion
+- Diffusion is computed per species on the grid.
+- Two methods are available:
+  - **Explicit finite-difference**: Applies a discrete Laplacian scaled by the diffusion coefficient and time step.
+  - **ADI (Crank–Nicolson)**: Alternating-direction implicit method that is unconditionally stable for linear diffusion and supports both Dirichlet and Neumann boundary conditions.
 
-To simulate the dispersion (spread) of populations across the grid, the application uses a discrete approximation of diffusion processes. The dispersion is computed separately in one dimension for rows and columns and then combined to yield the two-dimensional dispersion.
+#### Algorithm Workflow
 
-- **1D Dispersion**: For each row and column, the dispersion is calculated using a dispersion matrix. This matrix is tridiagonal with values that simulate the diffusion effect.
+For each timestep:
+1. Update populations using the interaction coefficients (per cell, per species).
+2. Apply diffusion using the selected numerical method and boundary condition.
+3. Record the state for visualization.
 
-  **Dispersion Matrix Generation**:
+## Mathematical Formulation of Diffusion
 
-  ```cpp
-  vector<vector<int>> generateDispersionMatrix(int n) {
-      auto dispersionMatrix = vector(n, vector(n, 0));
-      for (int i = 0; i < n; i++) {
-          if (i == 0) {
-              dispersionMatrix[i][i] = -2;
-              dispersionMatrix[i][i + 1] = 1;
-          } else if (i == n - 1) {
-              dispersionMatrix[i][i - 1] = 1;
-              dispersionMatrix[i][i] = -2;
-          } else {
-              dispersionMatrix[i][i - 1] = 1;
-              dispersionMatrix[i][i] = -2;
-              dispersionMatrix[i][i + 1] = 1;
-          }
-      }
-      return dispersionMatrix;
-  }
-  ```
+### The Diffusion Equation
 
-- **Matrix-Vector Multiplication**: The population vector is multiplied by the dispersion matrix to compute the dispersion effect. The Matrix here is Tri-Diagonal, therefore matrix-vector multiplication can be done in $`O(n)`$ instead of $`O(n^2)`$
-
-  ```cpp
-    vector<int> matrixVectorMultiplication(vector<int> vec, vector<vector<int>> matrix) {
-        vector<int> resultVector(vec.size(), 0);
-        for (int row = 0; row < matrix.size(); row++) {
-            int sum = 0;
-            if (row > 0) {
-                sum += vec[row - 1] * matrix[row][row - 1]; // left diagonal element
-            }
-            sum += vec[row] * matrix[row][row]; // main diagonal element
-            if (row < matrix.size() - 1) {
-                sum += vec[row + 1] * matrix[row][row + 1]; // right diagonal element
-            }
-            resultVector[row] = sum;
-        }
-        return resultVector;
-    }
-  ```
-
-- **Combining Row and Column Dispersion**: After computing the dispersion for rows and columns, the results are combined and multiplied with the dispersion coefficient. Why/How this works see [Mathematical Formulation of Diffusion](#mathematical-formulation-of-diffusion)
-
-  ```cpp
-  // Combining the 1D dispersions to yield the 2D dispersion
-  for (int row = 0; row < population.size(); row++) {
-      for (int col = 0; col < population[0].size(); col++) {
-          newPopulation[row][col] = static_cast<int>((newPopulationRows[row][col] + newPopulationCols[col][row]) * dispersionCoefficient);
-      }
-  }
-  ```
-
-#### Interaction Coefficients
-
-The interaction between species is modeled using a set of coefficients that define how one species affects another. This is computed using a scalar product of the populations and the coefficients.
-
-- **Scalar Product Calculation**:
-
-  ```cpp
-  float scalarProduct(vector<int> & animals, vector<float> & coefficients) {
-      float res = 0;
-      for (int i = 0; i < animals.size(); i++) {
-          res += static_cast<float>(animals[i]) * coefficients[i];
-      }
-      return res;
-  }
-  ```
-
-- **Updating Populations**: The population change at each cell is computed based on the interactions.
-
-  ```cpp
-  void computeChangedPopulation(vector<vector<vector<int>>> & board, vector<vector<float>> & coefficients) {
-      for (int y = 0; y < board.size(); y++) {
-          for (int x = 0; x < board[0].size(); x++) {
-              for (int k = 0; k < board[0][0].size(); k++) {
-                  board[y][x][k] += static_cast<int>(scalarProduct(board[y][x], coefficients[k]));
-              }
-          }
-      }
-  }
-  ```
-
-### Algorithm Workflow
-
-1. **Initialization**: Populations are initialized on the grid based on user input.
-2. **Simulation Loop**: For each timestep:
-    - **Population Interaction**: Update populations based on interaction coefficients.
-    - **Population Dispersion**: Compute dispersion for each species.
-    - **Update Grid**: Apply the computed changes to the grid.
-    - **Record State**: Save the current state for visualization.
-3. **Visualization**: Display the population distributions over time using heatmaps.
-
-**Main Simulation Function**:
-
-```cpp
-void prepareCalculations() {
-    add_to_steps(); // Record initial state
-    for (int i = 0; i < number_steps_t; i++) {
-        computeChangedPopulation(board, coefficients);
-        computePopulationsDispersion(board, dispersion_coefficients);
-        add_to_steps(); // Record state after each timestep
-    }
-}
-```
-
-# Mathematical Formulation of Diffusion
-
-## The Diffusion Equation
-
-The **diffusion equation** (also known as the **heat equation**) describes how a quantity, such as population density or temperature, diffuses over time:
-
-$$
+The diffusion (heat) equation:
+\[
 \frac{\partial u}{\partial t} = D \nabla^2 u
-$$
+\]
+with \(u = u(x, y, t)\) and scalar diffusion coefficient \(D\).
 
+### Laplacian and Spatial Discretization
 
-where:
+On a 2D grid with unit spacing \(h=1\):
+\[
+\nabla^2 u_{i,j} \approx (u_{i+1,j} - 2u_{i,j} + u_{i-1,j}) + (u_{i,j+1} - 2u_{i,j} + u_{i,j-1})
+\]
 
-- $`u = u(x, y, t)`$: The quantity being diffused (e.g., population density). ```steps[t][y][x]``` $`\approx u(x,y,t)`$.
-- $`\frac{\partial u}{\partial t}`$: The **time derivative** of $`u`$, representing how $`u`$ changes over time.
-- $`D`$: The **diffusion coefficient**, which controls the rate of diffusion.
-- $`\nabla^2 u`$: The **Laplacian** of $`u`$, which represents the rate of change in $`u`$ across space, in our case space is only two dimensions (that being width and height of the board).
+### Time Discretization
 
-## Laplacian and Spatial Discretization
+- **Explicit (Forward Euler)**:
+  \[
+  u^{n+1}_{i,j} = u^n_{i,j} + \Delta t\, D \nabla^2 u^n_{i,j}
+  \]
+  Common stability guidance on a unit grid is \(D \Delta t \lesssim 0.25\).
 
-The **Laplacian** in two dimensions (for our board) would be:
+- **ADI (Crank–Nicolson)**:
+  - Splits the 2D update into two 1D implicit solves per timestep (x-sweep, then y-sweep).
+  - Supports Dirichlet (absorbing) and Neumann (zero-flux/mirrored) boundaries.
+  - Generally more stable for larger time steps.
 
-$$
-\nabla^2 u = \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}
-$$
+### Explicit vs. ADI
 
-To approximate this on a **discrete grid**, we use the **finite difference method**.
+- **Explicit** is simple and fast per step but requires smaller \(\Delta t\) for stability.
+- **ADI** allows larger \(\Delta t\) while maintaining stability and accuracy for linear diffusion.
 
-- $`u_{i,j}`$: The value at grid point ```board[j][i]```.
-- Grid spacing in both directions is $`h`$, in our case $`h`$ is implicitly 1.
+### Boundary Conditions
 
-The **finite difference approximation** of the Laplacian at point $`(i, j)`$  is:
-
-$$
-\nabla^2 u_{i,j} \approx \frac{u_{i+1,j} - 2u_{i,j} + u_{i-1,j}}{h^2} + \frac{u_{i,j+1} - 2u_{i,j} + u_{i,j-1}}{h^2}
-$$
-
-This formula approximates the second derivatives in the $`x`$ and $`y`$ directions using neighboring points.
-How we come to this approximation is that we develop the Taylor series up to the third term for $`u(x,y,t)`$ around $`x \pm h`$ and $`y \pm h`$. 
-## Discretizing the Time Derivative
-
-The **time derivative** is also approximated using a **finite difference**. Let:
-
-- $`u_{i,j}^n`$ be the value at grid point $`(i, j)`$ at time step $`n`$.
-- Time step is $`\Delta t`$. In our case our timestep is also implicitly 1, as our initial goal was to work with discrete values. 
-
-Using the **explicit Euler method**:
-
-$$
-u_{i,j}^{n+1} = u_{i,j}^{n} + \Delta t \frac{\partial u}{\partial t} \quad \text{therefore} \quad \frac{\partial u}{\partial t} \approx \frac{u_{i,j}^{n+1} - u_{i,j}^{n}}{\Delta t}
-$$
-
-## Combining Time and Space Discretization
-
-By combining the discretized time and space derivatives, we approximate the diffusion equation as:
-
-$$
-\frac{u_{i,j}^{n+1} - u_{i,j}^n}{\Delta t} = D \left( \frac{u_{i+1,j}^n - 2u_{i,j}^n + u_{i-1,j}^n}{h^2} + \frac{u_{i,j+1}^n - 2u_{i,j}^n + u_{i,j-1}^n}{h^2} \right)
-$$
-
-Rearranging to solve for $`u_{i,j}^{n+1}`$:
-
-$$
-u_{i,j}^{n+1} = u_{i,j}^n + \Delta t \cdot D \left( \frac{u_{i+1,j}^n - 2u_{i,j}^n + u_{i-1,j}^n}{h^2} + \frac{u_{i,j+1}^n - 2u_{i,j}^n + u_{i,j-1}^n}{h^2} \right)
-$$
-
-This equation tells us how to update the value of $`u`$ at each grid point from time step $`n`$ to $`n+1`$, displaying the effects of diffusion.
-This last step is essentially what happens in ```computePopulationsDispersion(vector<vector<vector<int>>> & populations, vector<float> dispersionCoefficients)```
-## Connection to the Code
-
-- The **dispersion matrix** in the code acts as a discrete Laplacian in 1D, imagine the head equation on a rod, there you can see where does the ```-1, 2, -1``` pattern come from.
-- The **finite difference** scheme is used to compute how each point’s value changes based on its neighbors. It is applied once for all rows and once for all columns. 
-- This is equivalent to applying the **2D Laplacian**, calculated separately for rows and columns, to approximate the **diffusion** of populations over time.
-
-In summary, the code aims to approximate the **heat equation** using **finite difference methods** to compute both the **spatial Laplacian** and the **temporal derivative**, thereby modeling how populations disperse across the grid over time.
-
+- **Dirichlet (absorbing)**: Values outside the domain are treated as zero.
+- **Neumann (zero-flux)**: The normal derivative at the boundary is zero; practically, the edge values are mirrored to enforce no net flux.
 
 ## Code Structure
 
 ### Main Components
 
-- **`config_board_size_species()`**:
-    - Handles the configuration of the board size and the number of species.
-    - Updates the grid dimensions and manages species addition and removal.
-- **`config_species_list()`**:
-    - Provides input fields to rename species.
-- **`config_dynamics()`**:
-    - Displays the interaction matrix where users set coefficients for species interactions.
-    - Includes input for dispersion coefficients.
-    - Contains the "Simulate" button to start the simulation.
-- **`board_render()`**:
-    - Renders the grid where populations are visualized.
-    - Allows users to select cells and adjust populations.
-    - Displays population details for the selected cell.
-- **`Numerical.h` and `Numerical.cpp`**:
-    - Contain the numerical methods used for simulating population dispersion and interaction.
-    - Key functions include `computePopulationsDispersion`, `computeChangedPopulation`, and `prepareCalculations`.
+- `config_board_size_species()`:
+  - Configures board size and the number of species.
+- `config_species_list()`:
+  - Lets you rename species.
+- `config_dynamics()`:
+  - Interaction matrix, dispersion inputs, diffusion method selection, boundary condition selection, delta t, timesteps, and simulate button.
+  - Optional method comparison toggle.
+- `board_render()`:
+  - Renders the grid for editing initial populations.
+- `simulations_list()`:
+  - Displays per-species heatmaps over time (with optional side-by-side comparison).
+- `Numerical.h/.cpp`:
+  - Numerical routines for interaction and diffusion (supports explicit and ADI).
 
 ### Important Variables
 
-- **`board`**: A 3D vector representing the grid. Each cell contains a vector of population counts for each species.
-- **`species`**: A vector of `Species` objects representing each species in the simulation.
-- **`coefficients`**: A 2D vector holding interaction coefficients between species.
-- **`dispersion_coefficients`**: A vector containing dispersion rates for each species.
-- **`number_steps_t`**: An integer representing the total number of timesteps for the simulation.
-- **`selected_box`**: An integer representing the currently selected cell in the grid.
-- **`steps`**: A vector that records the state of the grid at each timestep for visualization. Basically an array of ```board```
+- `board`: 3D grid `[y][x][species]` for current populations.
+- `species`: List of species with display names and colors.
+- `coefficients`: Interaction matrix (per “affected” species row).
+- `dispersion_coefficients`: Per-species diffusion rates.
+- `delta_time`: Time step used by the numerical schemes.
+- `boundary_condition`: Dirichlet or Neumann.
+- `diffusion_method`: Explicit or ADI.
+- `number_steps_t`: Number of timesteps per run.
+- `selected_box`: Currently selected cell for editing.
+- `steps`: Recorded states `[step][species][y][x]` for visualization.
+- When comparing methods, `steps_explicit` and `steps_adi` record alternative runs for the same setup.
 
 ## Contributing
 
-If you would like to improve accuracy or efficiency, contributions are welcomed! Please open issues or pull requests for any changes or additions you'd like to make.
+Contributions are welcome! Please open issues or pull requests for improvements, features, or documentation updates.
 
 1. Fork the repository.
 2. Create your feature branch (`git checkout -b feature/YourFeature`).
@@ -377,9 +237,10 @@ If you would like to improve accuracy or efficiency, contributions are welcomed!
 
 ## Used Libraries
 
-- [Dear ImGui](https://github.com/ocornut/imgui): For the immediate mode GUI framework.
-- [ImPlot](https://github.com/epezent/implot): For advanced plotting capabilities within ImGui.
-- [C++ Standard Library](https://en.cppreference.com/w/): For data structures and algorithms.
+- [Dear ImGui](https://github.com/ocornut/imgui)
+- [ImPlot](https://github.com/epezent/implot)
+- [GLFW](https://www.glfw.org/)
+- [OpenGL](https://www.khronos.org/opengl/)
 
 ---
 
@@ -387,7 +248,17 @@ If you would like to improve accuracy or efficiency, contributions are welcomed!
 
 ### Dependencies
 
-- **ImGui**: The core GUI library used to build the interface.
-- **ImPlot**: An extension to ImGui that provides advanced plotting features.
-- **SDL2**: Used for window creation and input handling.
-- **OpenGL**: For rendering graphics.
+- Dear ImGui (GLFW + OpenGL3 backend)
+- ImPlot
+- GLFW
+- OpenGL 4.1 (Core) context
+
+### Building from Source
+
+See [Installation](#installation). Ensure your system provides a recent C++ compiler and OpenGL/GLFW development packages.
+
+### Troubleshooting
+
+- If the window doesn’t open or crashes at startup, validate your OpenGL driver supports 4.1 Core.
+- For rendering issues, try different ImPlot colormaps or toggle the autoscale option.
+- If explicit runs behave erratically, consider reducing diffusion or time step, or switch to ADI.

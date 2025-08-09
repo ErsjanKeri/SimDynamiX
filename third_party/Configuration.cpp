@@ -1,4 +1,7 @@
 #include "imgui.h"
+#include "imgui_internal.h"
+#include "../third_party/imgui/misc/cpp/imgui_stdlib.h"
+#include <cmath>
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -16,7 +19,7 @@ void config_board_size_species() {
             // add board_width_slider - board_width els to every arr
             for (auto & i : board) {
                 for (int j = 0; j < board_width_slider-board_width; j++) {
-                    i.emplace_back(15,0);
+                    i.emplace_back(15, 0.0);
                 }
             }
         } else {
@@ -34,11 +37,11 @@ void config_board_size_species() {
         if (board_height_slider > board_height) {
             // add board_height_slider - board_height rows
             for (int j = 0; j < board_height_slider-board_height; j++) {
-                board.emplace_back(board_width, vector<int>(15,0));
+                board.emplace_back(board_width, vector<double>(15, 0.0));
             }
         } else {
             // remove board_height - board_height_slider rows
-            for (int j = 0; j < board_height_slider-board_height; j++) {
+            for (int j = 0; j < board_height - board_height_slider; j++) {
                 board.pop_back();
             }
         }
@@ -57,7 +60,7 @@ void config_board_size_species() {
     ImGui::SameLine();  // Keep the plus button on the same line
     ImGui::BeginDisabled(counter > 14); // cant get below 1
     if (ImGui::Button("+")) {
-        species.push_back(new Species("specie " + std::to_string(counter+1), colors[counter]));  // Increment the counter when the plus button is clicked
+        species.push_back(Species("specie " + std::to_string(counter+1), colors[counter]));  // Increment the counter when the plus button is clicked
     }
     ImGui::EndDisabled();
     ImGui::SameLine();
@@ -66,9 +69,8 @@ void config_board_size_species() {
 
 void config_species_list() {
     for (int i = 0; i < species.size(); i++) {
-        // TODO, check to prevent string getting deleted, problem is the last character
         ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
-        ImGui::InputText(("##species"+to_string(i)).c_str(), species[i]->name.data(), 128);
+        ImGui::InputText(("##species"+to_string(i)).c_str(), &species[i].name);
         ImGui::PopStyleColor(1);
     }
 }
@@ -78,12 +80,37 @@ void config_dynamics() {
     ImGuiStyle& style = ImGui::GetStyle();
     style.CellPadding = ImVec2(1, 1);  // Remove padding between cells
 
+    // Diffusion method selector
+    const char* diffusionLabels[] = {"Explicit (FD)", "ADI (Crank–Nicolson)"};
+    int methodIndex = static_cast<int>(diffusion_method);
+    ImGui::Combo("Diffusion Method", &methodIndex, diffusionLabels, IM_ARRAYSIZE(diffusionLabels));
+    diffusion_method = static_cast<DiffusionMethod>(methodIndex);
+
+    const char* bcLabels[] = {"Dirichlet (absorbing)", "Neumann (zero-flux)"};
+    int bcIndex = static_cast<int>(boundary_condition);
+    ImGui::Combo("Boundary Condition", &bcIndex, bcLabels, IM_ARRAYSIZE(bcLabels));
+    boundary_condition = static_cast<BoundaryCondition>(bcIndex);
+
+    ImGui::InputDouble("Delta t", &delta_time, 0.0, 0.0, "%.3f", ImGuiInputTextFlags_CharsDecimal);
+    delta_time = std::max(0.0001, delta_time);
+
+    ImGui::Checkbox("Compare Explicit vs ADI (side-by-side)", &compare_methods);
+
+    // Explicit stability hint for fd scheme (rule of thumb: D*dt <= 0.25 for h=1)
+    if (diffusion_method == DIFFUSION_EXPLICIT) {
+        double maxD = 0.0;
+        for (int i = 0; i < species.size(); ++i) maxD = std::max(maxD, (double)dispersion_coefficients[i]);
+        if (maxD * delta_time > 0.25) {
+            ImGui::TextColored(ImVec4(1,0.6f,0,1), "Warning: Explicit scheme may be unstable (max D * dt > 0.25)");
+        }
+    }
+
     // Begin a table with species.size() columns, no padding or borders between columns
     if (ImGui::BeginTable("Grid Table", species.size()+1, ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoBordersInBody)) {
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(1, 1));  // Ensure no padding between cells
 
         for (int i = 0; i < species.size(); i++) {
-            ImGui::TableSetupColumn(species[i]->name.c_str());  // Use species name as column header
+            ImGui::TableSetupColumn(species[i].name.c_str());  // Use species name as column header
         }
         ImGui::TableSetupColumn("Dispersion");
         ImGui::TableHeadersRow();
@@ -97,7 +124,7 @@ void config_dynamics() {
                 ImGui::TableSetColumnIndex(j);  // Move to the correct column
 
                 ImGui::PushItemWidth(-1);
-                ImGui::InputFloat(("##hidden"+to_string(i*species.size()+j)).c_str(), &coefficients[i][j], 0.0f, 0.0f, "%.2f", ImGuiInputTextFlags_CharsDecimal);
+                ImGui::InputDouble(("##hidden"+to_string(i*species.size()+j)).c_str(), &coefficients[i][j], 0.0, 0.0, "%.3f", ImGuiInputTextFlags_CharsDecimal);
                 ImGui::PopItemWidth();
             }
 
@@ -105,8 +132,8 @@ void config_dynamics() {
             ImGui::PushItemWidth(-1);
 
             // input dispersion limited in range between [0:0.5]
-            ImGui::InputFloat(("##hidden"+to_string(i*species.size())+"dispersion").c_str(), &dispersion_coefficients[i], 0.0f, 0.0f, "%.5f", ImGuiInputTextFlags_CharsDecimal);
-            dispersion_coefficients[i] = std::clamp(dispersion_coefficients[i], 0.0f, 0.4f);
+            ImGui::InputDouble(("##hidden"+to_string(i*species.size())+"dispersion").c_str(), &dispersion_coefficients[i], 0.0, 0.0, "%.5f", ImGuiInputTextFlags_CharsDecimal);
+            dispersion_coefficients[i] = std::clamp(dispersion_coefficients[i], 0.0, 0.4);
 
             ImGui::PopItemWidth();
             ImGui::PopStyleColor(1);
@@ -147,14 +174,12 @@ void board_render() {
 
                 ostringstream oss;
 
-                // if (selected_box != -1 && row == selected_box/board_width && col == selected_box%board_width) {
-                    for (size_t i = 0; i < species.size(); ++i) {
-                        oss << board[row][col][i];
-                        if (i < species.size()-1) {
-                            oss<<",";
-                        }
+                for (size_t i = 0; i < species.size(); ++i) {
+                    oss << static_cast<int>(std::round(board[row][col][i]));
+                    if (i < species.size()-1) {
+                        oss<<",";
                     }
-                // }
+                }
                 oss << " ##Button"+to_string(row * board_width + col);
                 if (ImGui::Button(oss.str().c_str(), buttonSize)) {
                     selected_box = row*board_width+col;
@@ -167,9 +192,8 @@ void board_render() {
         int x = selected_box%board_width;
         int y = selected_box/board_width;
         if (selected_box != -1) {
-            ImGui::Text(("Population inside square X: "
-                    + to_string(x) + ", Y: "
-                    + to_string(y)).c_str());
+            std::string info = std::string("Population inside square X: ") + to_string(x) + ", Y: " + to_string(y);
+            ImGui::Text("%s", info.c_str());
         } else {
             ImGui::Text("Population inside square");
         }
@@ -178,10 +202,10 @@ void board_render() {
             ImGui::PushStyleColor(ImGuiCol_Text, HexToImVec4(colors[i]));
             // checks needed so that in case of resizing, doesnt crash
             if (selected_box != -1 && y < board.size() && x < board[0].size()) {
-                ImGui::InputInt(species[i]->name.c_str(), &board[y][x][i]);
+                ImGui::InputDouble(species[i].name.c_str(), &board[y][x][i], 0.0, 0.0, "%.3f", ImGuiInputTextFlags_CharsDecimal);
             } else {
-                int myInt = 0;
-                ImGui::InputInt(species[i]->name.c_str(), &myInt);
+                double myVal = 0.0;
+                ImGui::InputDouble(species[i].name.c_str(), &myVal, 0.0, 0.0, "%.3f", ImGuiInputTextFlags_CharsDecimal);
             }
             ImGui::PopStyleColor(1);
         }

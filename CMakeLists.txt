@@ -9,6 +9,7 @@ set(SOURCES
         third_party/imgui/imgui_draw.cpp
         third_party/imgui/imgui_widgets.cpp
         third_party/imgui/imgui_tables.cpp
+        third_party/imgui/misc/cpp/imgui_stdlib.cpp
         third_party/imgui/backends/imgui_impl_glfw.cpp
         third_party/imgui/backends/imgui_impl_opengl3.cpp
         third_party/implot/implot.cpp

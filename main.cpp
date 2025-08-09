@@ -80,8 +80,8 @@ int main() {
         return -1;
     }
     // set up default species
-    species.push_back(new Species("prey", colors[0]));
-    species.push_back(new Species("predator", colors[1]));
+    species.push_back(Species("prey", colors[0]));
+    species.push_back(Species("predator", colors[1]));
 
     // Set OpenGL version to 4.1 Core (highest supported on macOS)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);

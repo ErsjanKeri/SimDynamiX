@@ -44,6 +44,18 @@ enum State {
     SIMULATION
 };
 
+// Diffusion method selection
+enum DiffusionMethod {
+    DIFFUSION_EXPLICIT = 0,
+    DIFFUSION_ADI = 1
+};
+
+// Boundary condition selection
+enum BoundaryCondition {
+    BC_DIRICHLET = 0, // value outside domain is 0
+    BC_NEUMANN = 1    // zero-flux, mirror at boundary
+};
+
 
 inline ImVec4 HexToImVec4(uint32_t hex) {
     float r = ((hex >> 24) & 0xFF) / 255.0f;
@@ -54,19 +66,26 @@ inline ImVec4 HexToImVec4(uint32_t hex) {
 }
 
 inline State current = CONFIGURATION;
+inline DiffusionMethod diffusion_method = DIFFUSION_EXPLICIT;
+inline BoundaryCondition boundary_condition = BC_DIRICHLET;
+inline double delta_time = 1.0; // simulation time step
 inline int board_width = 10;
 inline int board_height = 10;
 // int because it represents for all 15 species its count of them in every block
-inline vector<vector<vector<int>>> board(board_height, vector<vector<int>>(board_width, vector<int>(15, 0)));
-inline vector<Species*> species;
-inline vector<vector<float>> coefficients(15, vector<float>(15, 0.0f));
-inline vector<float> dispersion_coefficients(15, 0.1f);
+inline vector<vector<vector<double>>> board(board_height, vector<vector<double>>(board_width, vector<double>(15, 0.0)));
+inline vector<Species> species;
+inline vector<vector<double>> coefficients(15, vector<double>(15, 0.0));
+inline vector<double> dispersion_coefficients(15, 0.1);
 
 inline int selected_box = -1; // not initalised
 inline int number_steps_t = 10;
 
 // 5 d, [step][population][y][x]
-inline vector<vector<vector<vector<int>>>> steps;
+inline vector<vector<vector<vector<double>>>> steps;
+inline vector<vector<vector<vector<double>>>> steps_explicit;
+inline vector<vector<vector<vector<double>>>> steps_adi;
+
+inline bool compare_methods = false;
 
 
 #endif

@@ -43,7 +43,13 @@ void simulations_list() {
     // slider to change value of selected_timestep, possible values from 1 to number_steps_t
     ImGui::SliderInt("Timestep", &selected_timestep, 1, number_steps_t);
 
-    if (ImGui::BeginTable("Grid Table", 3, ImGuiTableFlags_SizingFixedFit )) {
+    static bool auto_scale = true;
+    ImGui::Checkbox("Auto scale heatmaps", &auto_scale);
+    if (compare_methods) {
+        ImGui::Text("Left: Current method   Right: Other method");
+    }
+
+    if (ImGui::BeginTable("Grid Table", compare_methods ? 6 : 3, ImGuiTableFlags_SizingFixedFit )) {
 
         for (int row = 0; row < (species.size()+2)/3; row++) {
             ImGui::TableNextRow();  // Move to the next row
@@ -52,18 +58,19 @@ void simulations_list() {
                 int nrows = board_height;
                 int ncols = board_width;
 
-                int* flat_values = new int[nrows * ncols];
+                static std::vector<int> flat_values_buffer_a;
+                flat_values_buffer_a.resize(nrows * ncols);
                 for (int y = 0; y < nrows; y++) {
                     for (int x = 0; x < ncols; x++) {
-                        flat_values[y * ncols + x] = steps[selected_timestep-1][i][y][x];
+                        flat_values_buffer_a[y * ncols + x] = static_cast<int>(steps[selected_timestep-1][i][y][x]);
                     }
                 }
 
 
                 ImGui::TableSetColumnIndex(col);  // Set the current column
 
-                static float scale_min       = 0;
-                static float scale_max       = 100;
+                static float scale_min = 0.0f;
+                float scale_max = 100.0f;
 
                 // LABELS
                 // Generate labels
@@ -91,11 +98,30 @@ void simulations_list() {
 
                 ImPlot::PushColormap(map);
 
+                // Auto-scale computation
+                if (auto_scale) {
+                    int local_max = 0;
+                    for (int y = 0; y < nrows; ++y) {
+                        for (int x = 0; x < ncols; ++x) {
+                            local_max = std::max(local_max, static_cast<int>(steps[selected_timestep-1][i][y][x]));
+                        }
+                    }
+                    if (compare_methods) {
+                        const auto& ref_steps = (diffusion_method == DIFFUSION_ADI && steps_explicit.size()) ? steps_explicit : (steps_adi.size() ? steps_adi : steps);
+                        for (int y = 0; y < nrows; ++y) {
+                            for (int x = 0; x < ncols; ++x) {
+                                local_max = std::max(local_max, static_cast<int>(ref_steps[selected_timestep-1][i][y][x]));
+                            }
+                        }
+                    }
+                    scale_max = std::max(1, local_max);
+                }
+
                 if (ImPlot::BeginPlot(("##Heatmap1"+to_string(i)).c_str(),ImVec2(size_x,size_x),ImPlotFlags_NoLegend|ImPlotFlags_NoMouseText)) {
                     ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
                     ImPlot::SetupAxisTicks(ImAxis_X1, 0 + 1.0 / (2 * board_width), 1 - 1.0 / (2 * board_width), board_width, xlabels_cstr.data());
                     ImPlot::SetupAxisTicks(ImAxis_Y1, 1 - 1.0 / (2 * board_height), 0 + 1.0 / (2 * board_height), board_height, ylabels_cstr.data());
-                    ImPlot::PlotHeatmap(("heat"+to_string(i)).c_str(),flat_values,board_height,board_width,scale_min,scale_max,"%i",ImPlotPoint(0,0),ImPlotPoint(1,1),hm_flags);
+                    ImPlot::PlotHeatmap(("heat"+to_string(i)).c_str(), flat_values_buffer_a.data(), board_height, board_width, scale_min, scale_max, "%i", ImPlotPoint(0,0), ImPlotPoint(1,1), hm_flags);
                     ImPlot::EndPlot();
                 }
 
@@ -103,6 +129,28 @@ void simulations_list() {
 
                 ImGui::SameLine();
                 ImPlot::ColormapScale("##HeatScale",scale_min, scale_max, ImVec2(50,size_x));
+
+                if (compare_methods) {
+                    ImGui::TableSetColumnIndex(col+3);  // second block of 3 columns
+                    static std::vector<int> flat_values_buffer_b;
+                    flat_values_buffer_b.resize(nrows * ncols);
+                    // if steps_explicit/steps_adi populated, show ADI or explicit according to current method
+                    const auto& ref_steps = (diffusion_method == DIFFUSION_ADI && steps_explicit.size()) ? steps_explicit : (steps_adi.size() ? steps_adi : steps);
+                    for (int y = 0; y < nrows; y++) {
+                        for (int x = 0; x < ncols; x++) {
+                            flat_values_buffer_b[y * ncols + x] = static_cast<int>(ref_steps[selected_timestep-1][i][y][x]);
+                        }
+                    }
+                    if (ImPlot::BeginPlot(("##Heatmap2"+to_string(i)).c_str(),ImVec2(size_x,size_x),ImPlotFlags_NoLegend|ImPlotFlags_NoMouseText)) {
+                        ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
+                        ImPlot::SetupAxisTicks(ImAxis_X1, 0 + 1.0 / (2 * board_width), 1 - 1.0 / (2 * board_width), board_width, xlabels_cstr.data());
+                        ImPlot::SetupAxisTicks(ImAxis_Y1, 1 - 1.0 / (2 * board_height), 0 + 1.0 / (2 * board_height), board_height, ylabels_cstr.data());
+                        ImPlot::PlotHeatmap(("heat2"+to_string(i)).c_str(), flat_values_buffer_b.data(), board_height, board_width, scale_min, scale_max, "%i", ImPlotPoint(0,0), ImPlotPoint(1,1), hm_flags);
+                        ImPlot::EndPlot();
+                    }
+                    ImGui::SameLine();
+                    ImPlot::ColormapScale("##HeatScaleB",scale_min, scale_max, ImVec2(50,size_x));
+                }
             }
         }
         ImGui::EndTable();
