@@ -157,41 +157,49 @@ For each timestep:
 
 ### The Diffusion Equation
 
-The diffusion (heat) equation:
-\[
+The **diffusion equation** (also known as the **heat equation**) describes how a quantity diffuses over time:
+
+$$
 \frac{\partial u}{\partial t} = D \nabla^2 u
-\]
-with \(u = u(x, y, t)\) and scalar diffusion coefficient \(D\).
+$$
+
+where:
+
+- $`u = u(x, y, t)`$: the diffused quantity (e.g., population density). ```steps[t][y][x]``` $`\approx u(x,y,t)`$.
+- $`D`$: the diffusion coefficient controlling the rate of diffusion.
+- $`\nabla^2 u`$: the Laplacian of $`u`$.
 
 ### Laplacian and Spatial Discretization
 
-On a 2D grid with unit spacing \(h=1\):
-\[
-\nabla^2 u_{i,j} \approx (u_{i+1,j} - 2u_{i,j} + u_{i-1,j}) + (u_{i,j+1} - 2u_{i,j} + u_{i,j-1})
-\]
+On a 2D grid with unit spacing $`h=1`$ the Laplacian is approximated by the standard 5‑point stencil:
+
+$$
+\nabla^2 u_{i,j} \approx \frac{u_{i+1,j} - 2u_{i,j} + u_{i-1,j}}{h^2} + \frac{u_{i,j+1} - 2u_{i,j} + u_{i,j-1}}{h^2}
+$$
 
 ### Time Discretization
 
-- **Explicit (Forward Euler)**:
-  \[
-  u^{n+1}_{i,j} = u^n_{i,j} + \Delta t\, D \nabla^2 u^n_{i,j}
-  \]
-  Common stability guidance on a unit grid is \(D \Delta t \lesssim 0.25\).
+Using the **explicit Euler** method:
 
-- **ADI (Crank–Nicolson)**:
-  - Splits the 2D update into two 1D implicit solves per timestep (x-sweep, then y-sweep).
-  - Supports Dirichlet (absorbing) and Neumann (zero-flux/mirrored) boundaries.
-  - Generally more stable for larger time steps.
+$$
+u_{i,j}^{n+1} = u_{i,j}^{n} + \Delta t\, \frac{\partial u}{\partial t} \quad \Rightarrow \quad \frac{\partial u}{\partial t} \approx \frac{u_{i,j}^{n+1} - u_{i,j}^{n}}{\Delta t}
+$$
 
-### Explicit vs. ADI
+Combining time and space discretizations gives the explicit update:
 
-- **Explicit** is simple and fast per step but requires smaller \(\Delta t\) for stability.
-- **ADI** allows larger \(\Delta t\) while maintaining stability and accuracy for linear diffusion.
+$$
+\frac{u_{i,j}^{n+1} - u_{i,j}^{n}}{\Delta t} = D\left( \frac{u_{i+1,j}^{n} - 2u_{i,j}^{n} + u_{i-1,j}^{n}}{h^2} + \frac{u_{i,j+1}^{n} - 2u_{i,j}^{n} + u_{i,j-1}^{n}}{h^2} \right)
+$$
 
-### Boundary Conditions
+or equivalently
 
-- **Dirichlet (absorbing)**: Values outside the domain are treated as zero.
-- **Neumann (zero-flux)**: The normal derivative at the boundary is zero; practically, the edge values are mirrored to enforce no net flux.
+$$
+u_{i,j}^{n+1} = u_{i,j}^{n} + \Delta t\, D\left( \frac{u_{i+1,j}^{n} - 2u_{i,j}^{n} + u_{i-1,j}^{n}}{h^2} + \frac{u_{i,j+1}^{n} - 2u_{i,j}^{n} + u_{i,j-1}^{n}}{h^2} \right)
+$$
+
+For explicit schemes on a unit grid, a common stability guideline is $`D\,\Delta t \lesssim 0.25`$.
+
+The ADI (Crank–Nicolson) scheme updates by alternating implicit 1D solves in x and y and supports both Dirichlet (absorbing) and Neumann (zero‑flux) boundary conditions.
 
 ## Code Structure
 
