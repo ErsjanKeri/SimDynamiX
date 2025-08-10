@@ -51,9 +51,17 @@ void renderConfiguration() {
 void renderSimulation() {
     ImGui::SetNextWindowPos(ImVec2( PADDING, PADDING));
     ImGui::SetNextWindowSize(ImVec2(CANVAS_WIDTH-2*PADDING, CANVAS_HEIGHT-2*PADDING));
-    ImGui::Begin("Rendering Simulation", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Rendering Simulation", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
 
-    simulations_list();
+    // Header (non-scrollable)
+    simulations_render_header();
+
+    // Inner scrollable region for heatmaps only
+    float reserve_for_button = ImGui::GetFrameHeightWithSpacing() * 2.0f; // space for Stop button and padding
+    float child_h = std::max(50.0f, ImGui::GetContentRegionAvail().y - reserve_for_button);
+    ImGui::BeginChild("##SimHeatmaps", ImVec2(0, child_h), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    simulations_render_grids();
+    ImGui::EndChild();
 
     if (ImGui::Button("Stop Simulation")) {
         // set the board to the initial state steps[0]

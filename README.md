@@ -15,6 +15,7 @@ This project is a C++ graphical user interface (GUI) application that allows use
   - [Setting Interaction Coefficients](#setting-interaction-coefficients)
   - [Running Simulations](#running-simulations)
   - [Visualizing the Board](#visualizing-the-board)
+  - [Preset Scenarios](#preset-scenarios)
 - [Simulation Details](#simulation-details)
   - [Numerical Methods](#numerical-methods)
     - [Population Interaction](#population-interaction)
@@ -132,6 +133,31 @@ Run the executable:
 - Change **colormap** from the toolbar.
 - Enable **Auto scale heatmaps** to adapt color range to data.
 - When comparison is enabled, left shows the current method and right shows the alternate method for the same configuration.
+
+### Preset Scenarios
+
+The app ships with a small gallery of curated presets (inspired by classic pattern‑formation demos and research visuals found on the internet). They are designed to be visually engaging out‑of‑the‑box and to highlight how parameters, boundary conditions and numerical methods affect the dynamics.
+
+- Access them from the Presets section in the Dynamics panel.
+- Click Load Preset to populate the board, set the method, boundary condition, diffusion rates, time step and number of steps.
+- Presets are board‑size aware: initial shapes and radii scale with the current grid; intensities are chosen so patterns are visible immediately.
+
+Summary of included presets:
+
+| Preset | Species | Method | Boundary | Δt | Steps | Visual motif |
+|---|---|---|---|---:|---:|---|
+| Two‑Front Collision | 1 | Explicit (FD) | Dirichlet | 0.8 | 200 | Two dense fronts invade from left and right, colliding near the center |
+| Predator Core vs Prey Ring | 2 (prey, predator) | ADI (Crank–Nicolson) | Neumann | 1.0 | 220 | Predator core seeded inside a prey ring; chasing waves form as predator diffuses faster |
+| Cyclic Triad Waves | 3 (R,P,S) | ADI | Neumann | 1.0 | 240 | Rock–paper–scissors‑like cyclic dominance, three seeds at triangle vertices produce traveling wavelets |
+| Competitive Domains From Noise | 2 (blue, yellow) | Explicit | Neumann | 0.7 | 300 | Weakly antagonistic competitors segregate into domains starting from small random noise |
+| Four Corners Convergence | 4 (A,B,C,D) | Explicit | Dirichlet | 0.6 | 180 | Four species seeded at corners diffuse and interact toward the center |
+| Fast vs Slow Diffusion Twins | 2 (slow, fast) | ADI | Neumann | 1.0 | 200 | Identical initial blobs with very different diffusion; clear speed contrast |
+
+Notes and tips:
+
+- The presets intentionally use moderate to large time steps for fast feedback; ADI is robust at larger Δt, while Explicit benefits from Δt × max(D) ≲ 0.25.
+- Use side‑by‑side comparison to immediately see method differences; the app renders each species’ pair next to each other.
+- You can still adjust coefficients or dispersion after loading a preset; the next simulation run will use your edits.
 
 ## Simulation Details
 

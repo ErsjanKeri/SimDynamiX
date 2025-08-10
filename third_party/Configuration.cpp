@@ -8,6 +8,7 @@
 #include "./Species.h"
 #include "./Numerical.h"
 #include "./settings.h"
+#include "./Presets.h"
 
 
 using namespace std;
@@ -76,6 +77,27 @@ void config_species_list() {
 }
 
 void config_dynamics() {
+    // Presets
+    static bool presets_init = false;
+    if (!presets_init) { init_presets(); presets_init = true; }
+    const auto& preset_names = get_preset_names();
+    static int preset_idx = 0;
+    if (!preset_names.empty()) {
+        ImGui::Separator();
+        ImGui::Text("Presets");
+        ImGui::SetNextItemWidth(240);
+        ImGui::Combo("##PresetCombo", &preset_idx, [](void* data, int idx, const char** out_text){
+            auto* v = reinterpret_cast<const std::vector<std::string>*>(data);
+            if (idx < 0 || idx >= (int)v->size()) return false;
+            *out_text = (*v)[idx].c_str();
+            return true;
+        }, (void*)&preset_names, (int)preset_names.size());
+        ImGui::SameLine();
+        if (ImGui::Button("Load Preset")) {
+            apply_preset(preset_idx);
+        }
+    }
+
     ImGui::Text("How does 'column' species affect 'color' one");
     ImGuiStyle& style = ImGui::GetStyle();
     style.CellPadding = ImVec2(1, 1);  // Remove padding between cells
