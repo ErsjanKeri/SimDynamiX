@@ -37,7 +37,7 @@ void simulations_render_header() {
     ImGui::SameLine();
     ImGui::SetNextItemWidth(size_x-150);
     ImGui::LabelText("##Colormap Index", "%s", "Change Heatmap");
-    ImGui::SliderInt("Timestep", &selected_timestep, 1, number_steps_t);
+    ImGui::SliderInt("Timestep", &selected_timestep, 1, number_steps_t, "%d", ImGuiSliderFlags_NoInput);
     ImGui::Checkbox("Auto scale heatmaps", &auto_scale);
     if (compare_methods) ImGui::Text("Left: Current method   Right: Other method");
 }

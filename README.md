@@ -1,5 +1,7 @@
 # SymDynamiX in C++
 
+![SymDynamiX UI](media/ui.png)
+
 This project is a C++ graphical user interface (GUI) application that allows users to configure and simulate population dynamics on a discrete grid. Users can adjust the grid size, populate it with various species, set interaction coefficients, and observe how populations spread and interact over time according to selected numerical methods.
 
 ## Table of Contents
@@ -158,6 +160,21 @@ Notes and tips:
 - The presets intentionally use moderate to large time steps for fast feedback; ADI is robust at larger Δt, while Explicit benefits from Δt × max(D) ≲ 0.25.
 - Use side‑by‑side comparison to immediately see method differences; the app renders each species’ pair next to each other.
 - You can still adjust coefficients or dispersion after loading a preset; the next simulation run will use your edits.
+
+Preset visuals
+
+- Two‑Front Collision
+  - ![Two-Front Collision](media/two-front.gif)
+- Predator Core vs Prey Ring
+  - ![Predator Core vs Prey Ring](media/ring.gif)
+- Cyclic Triad Waves
+  - ![Cyclic Triad Waves](media/triad.gif)
+- Competitive Domains From Noise
+  - ![Competitive Domains From Noise](media/noise.gif)
+- Four Corners Convergence
+  - ![Four Corners Convergence](media/corner.gif)
+- Fast vs Slow Diffusion Twins
+  - ![Fast vs Slow Diffusion Twins](media/slowvsfast.gif)
 
 ## Simulation Details
 
